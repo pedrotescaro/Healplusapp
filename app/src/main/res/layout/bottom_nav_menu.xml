@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/dashboardFragment"
+        android:title="@string/menu_dashboard"
+        android:visible="true" />
+    <item
+        android:id="@+id/novaAnamneseFragment"
+        android:title="@string/menu_nova_anamnese" />
+    <item
+        android:id="@+id/minhasFichasFragment"
+        android:title="@string/menu_minhas_fichas" />
+    <item
+        android:id="@+id/agendaFragment"
+        android:title="@string/menu_agenda" />
+    <item
+        android:id="@+id/perfilFragment"
+        android:title="@string/menu_perfil" />
+</menu>
