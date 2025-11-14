@@ -514,4 +514,16 @@ class AnamneseFormActivity : AppCompatActivity() {
     }
 }
 
+private fun putText(resId: Int, value: String?) {
+    try {
+        val v = findViewById<android.view.View>(resId)
+        when {
+            v is android.widget.EditText -> v.setText(value ?: "")
+            v is android.widget.TextView -> v.text = value ?: ""
+            else -> {}
+        }
+    } catch (e: Exception) {
+        android.util.Log.e("AnamneseFormActivity", "putText error: ${e.message}")
+    }
+}
 

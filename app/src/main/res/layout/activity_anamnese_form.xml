@@ -41,6 +41,7 @@
         android:layout_margin="16dp"
         android:contentDescription="Salvar anamnese"
         android:text="Salvar"
+        android:visibility="visible"
         app:icon="@drawable/ic_add"
         app:iconTint="?attr/colorOnPrimary" />
 
