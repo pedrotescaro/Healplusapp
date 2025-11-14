@@ -10,15 +10,21 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.healplusapp.R
 import com.example.healplusapp.features.anamnese.AnamnesePreviewActivity
-import com.example.healplusapp.features.anamnese.controller.AnamneseController
 import com.example.healplusapp.features.anamnese.model.Anamnese
+import com.example.healplusapp.features.anamnese.viewmodel.AnamneseViewModel
+import com.example.healplusapp.features.anamnese.viewmodel.AnamneseUiState
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 
+@AndroidEntryPoint
 class AnamneseFormActivity : AppCompatActivity() {
-    private lateinit var controller: AnamneseController
+    private val viewModel: AnamneseViewModel by viewModels()
     private var currentId: Long? = null
     private var selectedImageUri: Uri? = null
 
@@ -30,7 +36,6 @@ class AnamneseFormActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_anamnese_form)
-        controller = AnamneseController(this)
 
         // Ligações de UI de botões herdados do fragment
         findViewById<Button>(R.id.btn_escolher_imagem)?.setOnClickListener { pickImage.launch("image/*") }
@@ -68,10 +73,42 @@ class AnamneseFormActivity : AppCompatActivity() {
         }
         atualizarLeitoBar()
 
+        // Observar estado da UI
+        observeUiState()
+
         // Edição: carregar dados se for edição
         currentId = intent.getLongExtra("id", -1L).takeIf { it > 0 }
         currentId?.let { id ->
-            controller.obter(id)?.let { fillFormFromModel(it) }
+            viewModel.obterAnamnese(id)
+        }
+    }
+    
+    private fun observeUiState() {
+        lifecycleScope.launch {
+            viewModel.uiState.collect { state ->
+                when (state) {
+                    is AnamneseUiState.Loading -> {
+                        // Mostrar loading se necessário
+                    }
+                    is AnamneseUiState.Success -> {
+                        Toast.makeText(this@AnamneseFormActivity, "Salvo com sucesso", Toast.LENGTH_SHORT).show()
+                        val jsonCompleto = montarJsonCompleto()
+                        val intent = android.content.Intent(this@AnamneseFormActivity, AnamnesePreviewActivity::class.java)
+                        intent.putExtra("anamnese_json", jsonCompleto)
+                        startActivity(intent)
+                        finish()
+                    }
+                    is AnamneseUiState.AnamneseLoaded -> {
+                        fillFormFromModel(state.anamnese)
+                    }
+                    is AnamneseUiState.Error -> {
+                        Toast.makeText(this@AnamneseFormActivity, state.message, Toast.LENGTH_LONG).show()
+                    }
+                    is AnamneseUiState.Idle -> {
+                        // Estado inicial
+                    }
+                }
+            }
         }
     }
 
@@ -402,14 +439,7 @@ class AnamneseFormActivity : AppCompatActivity() {
             localizacao = local,
             dadosJson = jsonCompleto
         )
-        controller.salvar(model)
-        Toast.makeText(this, "Salvo com sucesso", Toast.LENGTH_SHORT).show()
-
-        // Abrir preview por Intent
-        val intent = android.content.Intent(this, AnamnesePreviewActivity::class.java)
-        intent.putExtra("anamnese_json", jsonCompleto)
-        startActivity(intent)
-        finish()
+        viewModel.salvarAnamnese(model)
     }
 }
 

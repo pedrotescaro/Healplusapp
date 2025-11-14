@@ -1,95 +1,91 @@
 package com.example.healplusapp.features.anamnese.data
 
-import android.content.ContentValues
-import android.content.Context
+import com.example.healplusapp.data.database.dao.AnamneseDao
+import com.example.healplusapp.data.database.entity.AnamneseEntity
 import com.example.healplusapp.features.anamnese.model.Anamnese
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AnamneseRepository(context: Context) {
-    private val dbHelper = AnamneseDbHelper(context)
-
-    fun insert(anamnese: Anamnese): Long {
-        val db = dbHelper.writableDatabase
-        val values = ContentValues().apply {
-            put(AnamneseDbHelper.COL_NOME, anamnese.nomeCompleto)
-            put(AnamneseDbHelper.COL_DATA_CONSULTA, anamnese.dataConsulta)
-            put(AnamneseDbHelper.COL_LOCALIZACAO, anamnese.localizacao)
-            put(AnamneseDbHelper.COL_JSON, anamnese.dadosJson)
+@Singleton
+class AnamneseRepository @Inject constructor(
+    private val anamneseDao: AnamneseDao
+) {
+    
+    fun getAllAtivas(): Flow<List<Anamnese>> {
+        return anamneseDao.getAllAtivas().map { entities ->
+            entities.map { it.toModel() }
         }
-        return db.insert(AnamneseDbHelper.TABLE, null, values)
     }
-
-    fun update(anamnese: Anamnese): Int {
-        val db = dbHelper.writableDatabase
-        val values = ContentValues().apply {
-            put(AnamneseDbHelper.COL_NOME, anamnese.nomeCompleto)
-            put(AnamneseDbHelper.COL_DATA_CONSULTA, anamnese.dataConsulta)
-            put(AnamneseDbHelper.COL_LOCALIZACAO, anamnese.localizacao)
-            put(AnamneseDbHelper.COL_JSON, anamnese.dadosJson)
+    
+    fun getAllArquivadas(): Flow<List<Anamnese>> {
+        return anamneseDao.getAllArquivadas().map { entities ->
+            entities.map { it.toModel() }
         }
-        return db.update(
-            AnamneseDbHelper.TABLE,
-            values,
-            "${AnamneseDbHelper.COL_ID}=?",
-            arrayOf(anamnese.id?.toString() ?: "0")
+    }
+    
+    suspend fun getById(id: Long): Anamnese? {
+        return anamneseDao.getById(id)?.toModel()
+    }
+    
+    fun searchAtivas(query: String): Flow<List<Anamnese>> {
+        return anamneseDao.searchAtivas(query).map { entities ->
+            entities.map { it.toModel() }
+        }
+    }
+    
+    suspend fun insert(anamnese: Anamnese): Long {
+        val entity = anamnese.toEntity()
+        return anamneseDao.insert(entity)
+    }
+    
+    suspend fun update(anamnese: Anamnese) {
+        val entity = anamnese.toEntity()
+        anamneseDao.update(entity.copy(dataAtualizacao = System.currentTimeMillis()))
+    }
+    
+    suspend fun salvar(anamnese: Anamnese): Long {
+        return if (anamnese.id == null) {
+            insert(anamnese)
+        } else {
+            update(anamnese)
+            anamnese.id
+        }
+    }
+    
+    suspend fun arquivar(id: Long) {
+        anamneseDao.arquivar(id)
+    }
+    
+    suspend fun desarquivar(id: Long) {
+        anamneseDao.desarquivar(id)
+    }
+    
+    suspend fun countAtivas(): Int {
+        return anamneseDao.countAtivas()
+    }
+    
+    private fun AnamneseEntity.toModel(): Anamnese {
+        return Anamnese(
+            id = this.id,
+            nomeCompleto = this.nomeCompleto,
+            dataConsulta = this.dataConsulta,
+            localizacao = this.localizacao,
+            dadosJson = this.dadosJson
         )
     }
-
-    fun delete(id: Long): Int {
-        val db = dbHelper.writableDatabase
-        return db.delete(
-            AnamneseDbHelper.TABLE,
-            "${AnamneseDbHelper.COL_ID}=?",
-            arrayOf(id.toString())
+    
+    private fun Anamnese.toEntity(): AnamneseEntity {
+        val now = System.currentTimeMillis()
+        return AnamneseEntity(
+            id = this.id ?: 0,
+            nomeCompleto = this.nomeCompleto,
+            dataConsulta = this.dataConsulta,
+            localizacao = this.localizacao,
+            dadosJson = this.dadosJson,
+            dataCriacao = if (this.id == null) now else 0, // Será atualizado pelo Room
+            dataAtualizacao = now
         )
-    }
-
-    fun getAll(): List<Anamnese> {
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(AnamneseDbHelper.TABLE, null, null, null, null, null, "${AnamneseDbHelper.COL_ID} DESC")
-        val result = mutableListOf<Anamnese>()
-        cursor.use {
-            while (it.moveToNext()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(AnamneseDbHelper.COL_ID))
-                val nome = it.getString(it.getColumnIndexOrThrow(AnamneseDbHelper.COL_NOME))
-                val dataConsulta = it.getString(it.getColumnIndexOrThrow(AnamneseDbHelper.COL_DATA_CONSULTA))
-                val localizacao = it.getString(it.getColumnIndexOrThrow(AnamneseDbHelper.COL_LOCALIZACAO))
-                val json = it.getString(it.getColumnIndexOrThrow(AnamneseDbHelper.COL_JSON))
-                result.add(
-                    Anamnese(
-                        id = id,
-                        nomeCompleto = nome,
-                        dataConsulta = dataConsulta,
-                        localizacao = localizacao,
-                        dadosJson = json
-                    )
-                )
-            }
-        }
-        return result
-    }
-
-    fun getById(id: Long): Anamnese? {
-        val db = dbHelper.readableDatabase
-        val cursor = db.query(
-            AnamneseDbHelper.TABLE,
-            null,
-            "${AnamneseDbHelper.COL_ID}=?",
-            arrayOf(id.toString()),
-            null,
-            null,
-            null
-        )
-        cursor.use {
-            if (it.moveToFirst()) {
-                val nome = it.getString(it.getColumnIndexOrThrow(AnamneseDbHelper.COL_NOME))
-                val dataConsulta = it.getString(it.getColumnIndexOrThrow(AnamneseDbHelper.COL_DATA_CONSULTA))
-                val localizacao = it.getString(it.getColumnIndexOrThrow(AnamneseDbHelper.COL_LOCALIZACAO))
-                val json = it.getString(it.getColumnIndexOrThrow(AnamneseDbHelper.COL_JSON))
-                return Anamnese(id, nome, dataConsulta, localizacao, json)
-            }
-        }
-        return null
     }
 }
-
-

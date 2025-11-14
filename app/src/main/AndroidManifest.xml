@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
+        android:name=".HealPlusApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -38,6 +39,14 @@
             android:name=".features.anamnese.AnamnesePreviewActivity"
             android:exported="false"
             tools:ignore="LockedOrientationActivity" />
+
+        <activity
+            android:name=".features.fichas.ui.FichasActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".features.agenda.ui.AgendaActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
