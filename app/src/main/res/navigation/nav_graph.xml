@@ -10,11 +10,6 @@
         android:label="Dashboard" />
 
     <fragment
-        android:id="@+id/novaAnamneseFragment"
-        android:name="com.example.healplusapp.features.anamnese.NovaAnamneseFragment"
-        android:label="Nova Anamnese" />
-
-    <fragment
         android:id="@+id/minhasFichasFragment"
         android:name="com.example.healplusapp.features.fichas.MinhasFichasFragment"
         android:label="Minhas Fichas" />
