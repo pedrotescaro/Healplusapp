@@ -37,13 +37,41 @@ class AnamneseFormActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_anamnese_form)
 
-        // Ligações de UI de botões herdados do fragment
-        findViewById<Button>(R.id.btn_escolher_imagem)?.setOnClickListener { pickImage.launch("image/*") }
-        findViewById<Button>(R.id.btn_remover_imagem)?.setOnClickListener {
-            selectedImageUri = null
-            findViewById<ImageView>(R.id.img_prev_ferida)?.setImageDrawable(null)
-            Toast.makeText(this, "Imagem removida", Toast.LENGTH_SHORT).show()
+        // Configurar Toolbar
+        val toolbar = findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setHomeAsUpIndicator(R.drawable.ic_arrow_back)
+        
+        // Título dinâmico baseado se é edição ou criação
+        currentId = intent.getLongExtra("id", -1L).takeIf { it > 0 }
+        supportActionBar?.title = if (currentId != null) "Editar Anamnese" else "Nova Anamnese"
+        
+        toolbar.setNavigationOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
         }
+
+        // Ligações de UI de botões herdados do fragment
+        findViewById<Button>(R.id.btn_escolher_imagem)?.apply {
+            setOnClickListener { pickImage.launch("image/*") }
+            contentDescription = "Escolher imagem da ferida"
+        }
+        findViewById<Button>(R.id.btn_remover_imagem)?.apply {
+            setOnClickListener {
+                selectedImageUri = null
+                findViewById<ImageView>(R.id.img_prev_ferida)?.setImageDrawable(null)
+                Toast.makeText(this@AnamneseFormActivity, "Imagem removida", Toast.LENGTH_SHORT).show()
+            }
+            contentDescription = "Remover imagem selecionada"
+        }
+        
+        // FAB de salvar
+        findViewById<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>(R.id.fab_salvar)?.apply {
+            setOnClickListener { salvar() }
+            contentDescription = "Salvar anamnese"
+        }
+        
+        // Botão antigo (se existir no layout)
         findViewById<Button>(R.id.btn_salvar_anamnese)?.setOnClickListener { salvar() }
 
         // Máscaras
@@ -153,10 +181,29 @@ class AnamneseFormActivity : AppCompatActivity() {
     }
 
     private fun fillFormFromModel(a: Anamnese) {
-        findViewById<EditText>(R.id.et_nome_completo)?.setText(a.nomeCompleto)
+        // Preencher campos principais
+        val nomeEditText = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_nome_completo)
+            ?: findViewById<EditText>(R.id.et_nome_completo)
+        nomeEditText?.setText(a.nomeCompleto)
+        
         findViewById<EditText>(R.id.et_data_consulta)?.setText(a.dataConsulta)
         findViewById<EditText>(R.id.et_localizacao)?.setText(a.localizacao)
-        // Demais campos podem ser preenchidos a partir do JSON salvo, se desejar
+        
+        // Tentar preencher outros campos do JSON se disponível
+        try {
+            val json = org.json.JSONObject(a.dadosJson)
+            json.optString("dataNascimento")?.takeIf { it.isNotEmpty() }?.let {
+                findViewById<EditText>(R.id.et_data_nascimento)?.setText(it)
+            }
+            json.optString("telefone")?.takeIf { it.isNotEmpty() }?.let {
+                findViewById<EditText>(R.id.et_telefone)?.setText(it)
+            }
+            json.optString("email")?.takeIf { it.isNotEmpty() }?.let {
+                findViewById<EditText>(R.id.et_email)?.setText(it)
+            }
+        } catch (e: Exception) {
+            // JSON inválido ou campos não disponíveis
+        }
     }
 
     private fun addDateMask(editText: EditText?) {
@@ -234,8 +281,15 @@ class AnamneseFormActivity : AppCompatActivity() {
     }
 
     private fun putText(id: Int, key: String, data: JSONObject) {
-        val et = findViewById<EditText>(id)
-        if (et != null) data.put(key, et.text?.toString()?.trim() ?: "")
+        // Tentar TextInputEditText primeiro, depois EditText normal
+        val textInputEditText = findViewById<com.google.android.material.textfield.TextInputEditText>(id)
+        val editText = findViewById<EditText>(id)
+        val text = textInputEditText?.text?.toString()?.trim() 
+            ?: editText?.text?.toString()?.trim() 
+            ?: ""
+        if (text.isNotEmpty() || textInputEditText != null || editText != null) {
+            data.put(key, text)
+        }
     }
 
     private fun putCheck(id: Int, key: String, data: JSONObject) {
@@ -368,9 +422,21 @@ class AnamneseFormActivity : AppCompatActivity() {
 
     private fun validarCamposObrigatorios(): Boolean {
         var invalido = false
+        
+        // Validar nome completo
+        val nomeEditText = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_nome_completo)
+            ?: findViewById<EditText>(R.id.et_nome_completo)
+        val nomeLayout = findViewById<com.google.android.material.textfield.TextInputLayout>(R.id.layout_nome_completo)
+        
+        if (nomeEditText?.text.isNullOrBlank()) {
+            nomeLayout?.error = "Nome é obrigatório"
+            invalido = true
+        } else {
+            nomeLayout?.error = null
+        }
+        
+        // Validar outros campos obrigatórios
         val obrigatorios = listOf(
-            R.id.et_nome_completo to "Nome é obrigatório",
-            R.id.et_data_nascimento to "Data de nascimento é obrigatória",
             R.id.et_localizacao to "Localização é obrigatória"
         )
         obrigatorios.forEach { (id, msg) ->
@@ -378,8 +444,11 @@ class AnamneseFormActivity : AppCompatActivity() {
             if (et != null && et.text.isNullOrBlank()) {
                 et.error = msg
                 invalido = true
+            } else {
+                et?.error = null
             }
         }
+        
         if (invalido) Toast.makeText(this, "Preencha os campos obrigatórios", Toast.LENGTH_SHORT).show()
         return !invalido
     }
@@ -428,9 +497,11 @@ class AnamneseFormActivity : AppCompatActivity() {
         if (!validarEmailTelefone()) return
 
         val jsonCompleto = montarJsonCompleto()
-        val nome = findViewById<EditText>(R.id.et_nome_completo).text.toString().trim()
-        val dataConsulta = findViewById<EditText>(R.id.et_data_consulta).text.toString().trim()
-        val local = findViewById<EditText>(R.id.et_localizacao).text.toString().trim()
+        val nomeEditText = findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.et_nome_completo)
+            ?: findViewById<EditText>(R.id.et_nome_completo)
+        val nome = nomeEditText?.text?.toString()?.trim() ?: ""
+        val dataConsulta = findViewById<EditText>(R.id.et_data_consulta)?.text?.toString()?.trim() ?: ""
+        val local = findViewById<EditText>(R.id.et_localizacao)?.text?.toString()?.trim() ?: ""
 
         val model = Anamnese(
             id = currentId,
