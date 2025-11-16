@@ -7,4 +7,27 @@
     <string name="menu_gerar_relatorio">Gerar Relatório</string>
     <string name="menu_comparar_relatorios">Comparar Relatórios</string>
     <string name="menu_perfil">Perfil</string>
+
+    <string name="title_dashboard">Dashboard</string>
+    <string name="subtitle_dashboard">Acesse suas anamneses e relatórios</string>
+
+    <string name="title_agenda">Agenda</string>
+    <string name="subtitle_agenda">Toque para gerenciar seus agendamentos</string>
+
+    <string name="title_minhas_fichas">Minhas Fichas</string>
+    <string name="subtitle_minhas_fichas">Toque para gerenciar suas fichas de pacientes</string>
+
+    <string name="title_gerar_relatorio">Gerar Relatório</string>
+    <string name="btn_select_image">Selecionar imagem</string>
+    <string name="btn_generate_pdf_placeholder">Gerar PDF (placeholder)</string>
+
+    <string name="title_relatorio_antigo">Relatório 1 (Antigo)</string>
+    <string name="title_relatorio_recente">Relatório 2 (Recente)</string>
+    <string name="hint_markdown_conteudo">Conteúdo em texto (Markdown)</string>
+    <string name="hint_data_relatorio_1">Data do relatório 1 (dd/MM/yyyy)</string>
+    <string name="hint_data_relatorio_2">Data do relatório 2 (dd/MM/yyyy)</string>
+    <string name="btn_select_image_1">Selecionar Imagem 1</string>
+    <string name="btn_select_image_2">Selecionar Imagem 2</string>
+    <string name="btn_compare">Comparar</string>
+    <string name="label_result_placeholder">Resultado aparecerá aqui.</string>
 </resources>

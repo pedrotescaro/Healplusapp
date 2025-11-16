@@ -27,8 +27,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="Minhas Fichas"
-            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:text="@string/title_minhas_fichas"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold" />
 
@@ -37,8 +37,8 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="center"
-            android:text="Toque para gerenciar suas fichas de pacientes"
-            android:textAppearance="?attr/textAppearanceBody2"
+            android:text="@string/subtitle_minhas_fichas"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
     </LinearLayout>

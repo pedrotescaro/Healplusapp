@@ -20,7 +20,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Relatório 1 (Antigo)"
+                android:text="@string/title_relatorio_antigo"
                 android:textAppearance="?attr/textAppearanceTitleLarge"
                 android:textColor="?attr/colorOnSurface" />
             <EditText
@@ -28,13 +28,13 @@
                 style="@style/Heal.Input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Conteúdo em texto (Markdown)" />
+                android:hint="@string/hint_markdown_conteudo" />
             <EditText
                 android:id="@+id/et_report1_date"
                 style="@style/Heal.Input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Data do relatório 1 (dd/MM/yyyy)" />
+                android:hint="@string/hint_data_relatorio_1" />
             <ImageView
                 android:id="@+id/img1"
                 android:layout_width="match_parent"
@@ -45,14 +45,14 @@
                 style="@style/Heal.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Selecionar Imagem 1" />
+                android:text="@string/btn_select_image_1" />
 
             <View android:layout_width="match_parent" android:layout_height="12dp" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Relatório 2 (Recente)"
+                android:text="@string/title_relatorio_recente"
                 android:textAppearance="?attr/textAppearanceTitleLarge"
                 android:textColor="?attr/colorOnSurface" />
             <EditText
@@ -60,13 +60,13 @@
                 style="@style/Heal.Input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Conteúdo em texto (Markdown)" />
+                android:hint="@string/hint_markdown_conteudo" />
             <EditText
                 android:id="@+id/et_report2_date"
                 style="@style/Heal.Input"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Data do relatório 2 (dd/MM/yyyy)" />
+                android:hint="@string/hint_data_relatorio_2" />
             <ImageView
                 android:id="@+id/img2"
                 android:layout_width="match_parent"
@@ -77,7 +77,7 @@
                 style="@style/Heal.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Selecionar Imagem 2" />
+                android:text="@string/btn_select_image_2" />
 
             <View android:layout_width="match_parent" android:layout_height="16dp" />
 
@@ -86,14 +86,14 @@
                 style="@style/Heal.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Comparar" />
+                android:text="@string/btn_compare" />
 
             <TextView
                 android:id="@+id/tv_result"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingTop="12dp"
-                android:text="Resultado aparecerá aqui." />
+                android:text="@string/label_result_placeholder" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 </ScrollView>
