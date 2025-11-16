@@ -512,4 +512,5 @@ class AnamneseFormActivity : AppCompatActivity() {
         )
         viewModel.salvarAnamnese(model)
     }
+}
 
