@@ -54,4 +54,20 @@
         <item name="colorOnSecondary">@color/heal_foreground</item>
         <item name="colorOutline">@color/heal_foreground</item>
     </style>
+
+    <!-- Alias simples para evitar referências quebradas a ThemeOverlay.Heal -->
+    <style name="ThemeOverlay.Heal">
+        <item name="colorOnSurface">@color/heal_foreground</item>
+        <item name="colorOnSurfaceVariant">@color/heal_foreground</item>
+        <item name="colorOnSecondary">@color/heal_foreground</item>
+        <item name="colorOutline">@color/heal_foreground</item>
+    </style>
+
+    <!-- Fallback genérico: alguns componentes podem referenciar @style/ThemeOverlay -->
+    <style name="ThemeOverlay">
+        <item name="colorOnSurface">@color/heal_foreground</item>
+        <item name="colorOnSurfaceVariant">@color/heal_foreground</item>
+        <item name="colorOnSecondary">@color/heal_foreground</item>
+        <item name="colorOutline">@color/heal_foreground</item>
+    </style>
 </resources>
