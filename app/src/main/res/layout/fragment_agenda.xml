@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="Agenda"
-            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold" />
 
@@ -38,7 +38,7 @@
             android:layout_marginTop="8dp"
             android:gravity="center"
             android:text="Toque para gerenciar seus agendamentos"
-            android:textAppearance="?attr/textAppearanceBody2"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
     </LinearLayout>

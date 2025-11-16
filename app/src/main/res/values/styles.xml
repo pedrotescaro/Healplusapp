@@ -47,4 +47,11 @@
     <style name="Heal.Section">
         <item name="android:paddingTop">12dp</item>
     </style>
+
+    <style name="ThemeOverlay.Heal.HighContrast">
+        <item name="colorOnSurface">@color/heal_foreground</item>
+        <item name="colorOnSurfaceVariant">@color/heal_foreground</item>
+        <item name="colorOnSecondary">@color/heal_foreground</item>
+        <item name="colorOutline">@color/heal_foreground</item>
+    </style>
 </resources>

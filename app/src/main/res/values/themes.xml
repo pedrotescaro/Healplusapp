@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.Healplusapp" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/heal_primary</item>
+        <item name="colorOnPrimary">@color/heal_on_primary</item>
+        <item name="colorSurface">@color/heal_card</item>
+        <item name="colorOnSurface">@color/heal_card_foreground</item>
+        <item name="colorSecondary">@color/heal_secondary</item>
+        <item name="colorOnSecondary">@color/heal_on_secondary</item>
+        <item name="colorBackground">@color/heal_background</item>
+        <item name="android:statusBarColor">@color/heal_background</item>
+        <item name="android:navigationBarColor">@color/heal_background</item>
         <item name="android:windowLightStatusBar">true</item>
     </style>
 </resources>
