@@ -12,7 +12,7 @@
     <item
         android:id="@+id/minhasFichasFragment"
         android:title="@string/menu_minhas_fichas"
-        android:icon="@drawable/ic_fichas" />
+        android:icon="@drawable/ic_fichas1" />
     <item
         android:id="@+id/agendaFragment"
         android:title="@string/menu_agenda"
