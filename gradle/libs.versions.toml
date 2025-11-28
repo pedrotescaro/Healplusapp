@@ -1,6 +1,6 @@
 [versions]
 agp = "8.11.2"
-kotlin = "2.1.20"
+kotlin = "2.0.21"
 coreKtx = "1.17.0"
 junit = "4.13.2"
 junitVersion = "1.3.0"
@@ -19,11 +19,11 @@ credentials = "1.5.0"
 credentialsPlayServicesAuth = "1.5.0"
 googleid = "1.1.1"
 firebaseDatabase = "22.0.1"
-firebaseFirestore = "26.0.1"
+firebaseFirestore = "25.1.0"
 uiTextAndroid = "1.9.3"
 uiTextJvmstubs = "1.9.3"
 room = "2.8.3"
-hilt = "2.51.1"
+hilt = "2.52"
 hiltNavigation = "1.2.0"
 lifecycleViewmodel = "2.6.1"
 coroutines = "1.7.3"
@@ -55,6 +55,7 @@ androidx-credentials-play-services-auth = { group = "androidx.credentials", name
 googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 firebase-database = { group = "com.google.firebase", name = "firebase-database", version.ref = "firebaseDatabase" }
 firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore", version.ref = "firebaseFirestore" }
+firebase-firestore-ktx = { group = "com.google.firebase", name = "firebase-firestore-ktx", version.ref = "firebaseFirestore" }
 androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "uiTextAndroid" }
 androidx-ui-text-jvmstubs = { group = "androidx.compose.ui", name = "ui-text-jvmstubs", version.ref = "uiTextJvmstubs" }
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

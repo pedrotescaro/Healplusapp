@@ -1,36 +1,26 @@
 {
   "project_info": {
-    "project_number": "315167035013",
-    "project_id": "woundwise-g3zb9",
-    "storage_bucket": "woundwise-g3zb9.firebasestorage.app"
+    "project_number": "453362559960",
+    "project_id": "healplusapp",
+    "storage_bucket": "healplusapp.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:315167035013:android:3e8755015e2843f2f963ec",
+        "mobilesdk_app_id": "1:453362559960:android:6b290a13a7bc6718c060ad",
         "android_client_info": {
           "package_name": "com.example.healplusapp"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "315167035013-hlhl269h84vcvbctfvcdjqj0bou264k8.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyADBiAYrdMaqj-vbQJxkk_VGMpdUZcGIDI"
+          "current_key": "AIzaSyBb7hea6aUjofYCeyqGuLhm2u-EdrwP5Og"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "315167035013-hlhl269h84vcvbctfvcdjqj0bou264k8.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

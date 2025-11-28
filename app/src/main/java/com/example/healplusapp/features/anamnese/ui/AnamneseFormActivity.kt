@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -281,13 +282,13 @@ class AnamneseFormActivity : AppCompatActivity() {
     }
 
     private fun putText(id: Int, key: String, data: JSONObject) {
-        // Tentar TextInputEditText primeiro, depois EditText normal
-        val textInputEditText = findViewById<com.google.android.material.textfield.TextInputEditText>(id)
-        val editText = findViewById<EditText>(id)
-        val text = textInputEditText?.text?.toString()?.trim() 
-            ?: editText?.text?.toString()?.trim() 
-            ?: ""
-        if (text.isNotEmpty() || textInputEditText != null || editText != null) {
+        val view = findViewById<View>(id)
+        val text = when (view) {
+            is com.google.android.material.textfield.TextInputEditText -> view.text?.toString()?.trim().orEmpty()
+            is EditText -> view.text?.toString()?.trim().orEmpty()
+            else -> ""
+        }
+        if (text.isNotEmpty() || view != null) {
             data.put(key, text)
         }
     }
