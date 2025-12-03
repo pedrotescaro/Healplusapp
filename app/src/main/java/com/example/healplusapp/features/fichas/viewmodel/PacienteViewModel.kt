@@ -73,6 +73,17 @@ class PacienteViewModel @Inject constructor(
         }
     }
     
+    fun deletarPaciente(id: Long) {
+        viewModelScope.launch {
+            try {
+                repository.deletar(id)
+                _uiState.value = PacienteUiState.Success(id)
+            } catch (e: Exception) {
+                _uiState.value = PacienteUiState.Error(e.message ?: "Erro ao deletar paciente")
+            }
+        }
+    }
+    
     fun searchPacientes(query: String): Flow<List<Paciente>> {
         return repository.searchAtivos(query)
     }

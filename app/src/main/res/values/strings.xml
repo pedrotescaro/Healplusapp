@@ -30,4 +30,13 @@
     <string name="btn_select_image_2">Selecionar Imagem 2</string>
     <string name="btn_compare">Comparar</string>
     <string name="label_result_placeholder">Resultado aparecerá aqui.</string>
+    <string name="title_login">Entrar</string>
+    <string name="hint_email">E-mail</string>
+    <string name="hint_password">Senha</string>
+    <string name="btn_login">Entrar</string>
+    <string name="btn_register">Registrar</string>
+    <string name="btn_google_sign_in">Entrar com Google</string>
+    <string name="default_web_client_id">REPLACE_ME_WITH_CLIENT_ID</string>
+    <string name="title_paciente_form">Paciente</string>
+    <string name="btn_salvar">Salvar</string>
 </resources>

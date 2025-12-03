@@ -43,17 +43,31 @@ class FichasActivity : AppCompatActivity() {
     private fun setupRecyclerView() {
         recyclerView = findViewById(R.id.recycler_fichas)
         recyclerView.layoutManager = LinearLayoutManager(this)
-        adapter = FichasAdapter(emptyList()) { paciente ->
-            // Abrir detalhes do paciente
-            Toast.makeText(this, "Abrir detalhes: ${paciente.nomeCompleto}", Toast.LENGTH_SHORT).show()
-        }
+        adapter = FichasAdapter(emptyList(),
+            onItemClick = { paciente ->
+                val intent = Intent(this, PacienteFormActivity::class.java)
+                intent.putExtra("id", paciente.id ?: -1L)
+                startActivity(intent)
+            },
+            onItemLongClick = { paciente ->
+                val dlg = androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle(paciente.nomeCompleto)
+                    .setItems(arrayOf("Arquivar", "Deletar")) { _, which ->
+                        when (which) {
+                            0 -> paciente.id?.let { viewModel.arquivarPaciente(it) }
+                            1 -> paciente.id?.let { viewModel.deletarPaciente(it) }
+                        }
+                    }
+                    .create()
+                dlg.show()
+            }
+        )
         recyclerView.adapter = adapter
     }
     
     private fun setupFab() {
         findViewById<FloatingActionButton>(R.id.fab_adicionar_ficha)?.setOnClickListener {
-            // Abrir formulário de novo paciente
-            Toast.makeText(this, "Novo paciente", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, PacienteFormActivity::class.java))
         }
     }
     
@@ -111,7 +125,8 @@ class FichasActivity : AppCompatActivity() {
 
 class FichasAdapter(
     private var pacientes: List<Paciente>,
-    private val onItemClick: (Paciente) -> Unit
+    private val onItemClick: (Paciente) -> Unit,
+    private val onItemLongClick: (Paciente) -> Unit
 ) : RecyclerView.Adapter<FichasAdapter.ViewHolder>() {
     
     class ViewHolder(val view: android.view.View) : RecyclerView.ViewHolder(view) {
@@ -136,6 +151,7 @@ class FichasAdapter(
             }
         }
         holder.view.setOnClickListener { onItemClick(paciente) }
+        holder.view.setOnLongClickListener { onItemLongClick(paciente); true }
     }
     
     override fun getItemCount() = pacientes.size

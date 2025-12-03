@@ -19,6 +19,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.AndroidEntryPoint
 import java.util.Locale
 import java.util.UUID
@@ -33,10 +34,12 @@ class MainActivity : AppCompatActivity() {
 
     @Inject lateinit var anamneseRepository: AnamneseRepository
     @Inject lateinit var agendamentoRepository: AgendamentoRepository
+    @Inject lateinit var pacienteRepository: com.example.healplusapp.features.fichas.data.PacienteRepository
 
     private val firestore by lazy { FirebaseFirestore.getInstance() }
     private val anamneseSyncCache = mutableMapOf<String, Int>()
     private val agendamentoSyncCache = mutableMapOf<String, Int>()
+    private val pacienteSyncCache = mutableMapOf<String, Int>()
     private var profileSettingsHash: Int? = null
     private var sharedPrefs: SharedPreferences? = null
     private lateinit var profileDocumentId: String
@@ -53,6 +56,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (FirebaseAuth.getInstance().currentUser == null) {
+            startActivity(Intent(this, com.example.healplusapp.features.auth.LoginActivity::class.java))
+            finish()
+            return
+        }
 
         val userSettings = UserSettings(this)
         sharedPrefs = userSettings.getSharedPreferences().also {
@@ -95,6 +103,7 @@ class MainActivity : AppCompatActivity() {
     private fun setupFirestoreBackends() {
         observeAnamneses()
         observeAgendamentos()
+        observePacientes()
         sharedPrefs?.let { syncProfileSettingsSnapshot(it) }
     }
 
@@ -114,6 +123,16 @@ class MainActivity : AppCompatActivity() {
                 agendamentoRepository.getAllAtivos()
                     .debounce(SYNC_DEBOUNCE_MS)
                     .collectLatest { saveAgendamentosInFirestore(it) }
+            }
+        }
+    }
+
+    private fun observePacientes() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                pacienteRepository.getAllAtivos()
+                    .debounce(SYNC_DEBOUNCE_MS)
+                    .collectLatest { savePacientesInFirestore(it) }
             }
         }
     }
@@ -162,6 +181,39 @@ class MainActivity : AppCompatActivity() {
                 agendamentoSyncCache[docId] = newHash
             } catch (e: Exception) {
                 Log.e(TAG, "Erro ao salvar agendamento $docId no Firestore", e)
+            }
+        }
+    }
+
+    private suspend fun savePacientesInFirestore(pacientes: List<com.example.healplusapp.features.fichas.model.Paciente>) {
+        if (pacientes.isEmpty()) return
+        val collection = firestore.collection("pacientes")
+        for (paciente in pacientes) {
+            val docId = paciente.id?.toString() ?: continue
+            val payloadForHash = mutableMapOf<String, Any>(
+                "nomeCompleto" to paciente.nomeCompleto
+            ).apply {
+                paciente.dataNascimento?.takeIf { it.isNotBlank() }?.let { this["dataNascimento"] = it }
+                paciente.telefone?.takeIf { it.isNotBlank() }?.let { this["telefone"] = it }
+                paciente.email?.takeIf { it.isNotBlank() }?.let { this["email"] = it }
+                paciente.profissao?.takeIf { it.isNotBlank() }?.let { this["profissao"] = it }
+                paciente.estadoCivil?.takeIf { it.isNotBlank() }?.let { this["estadoCivil"] = it }
+                paciente.observacoes?.takeIf { it.isNotBlank() }?.let { this["observacoes"] = it }
+            }
+            val newHash = payloadForHash.hashCode()
+            if (pacienteSyncCache[docId] == newHash) continue
+
+            val payload = payloadForHash.toMutableMap().apply {
+                put("updatedAt", Timestamp.now())
+            }
+
+            try {
+                collection.document(docId)
+                    .set(payload, SetOptions.merge())
+                    .await()
+                pacienteSyncCache[docId] = newHash
+            } catch (e: Exception) {
+                Log.e(TAG, "Erro ao salvar paciente $docId no Firestore", e)
             }
         }
     }

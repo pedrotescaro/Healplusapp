@@ -33,5 +33,8 @@ interface PacienteDao {
     
     @Query("SELECT COUNT(*) FROM pacientes WHERE arquivado = 0")
     suspend fun countAtivos(): Int
+
+    @Query("DELETE FROM pacientes WHERE id = :id")
+    suspend fun deleteById(id: Long)
 }
 

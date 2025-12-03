@@ -28,6 +28,14 @@
         </activity>
 
         <activity
+            android:name=".features.auth.LoginActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".features.fichas.ui.PacienteFormActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".features.anamnese.ui.AnamneseListActivity"
             android:exported="false" />
 

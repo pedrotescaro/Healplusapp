@@ -62,6 +62,10 @@ class PacienteRepository @Inject constructor(
         pacienteDao.desarquivar(id)
     }
     
+    suspend fun deletar(id: Long) {
+        pacienteDao.deleteById(id)
+    }
+    
     suspend fun countAtivos(): Int {
         return pacienteDao.countAtivos()
     }
