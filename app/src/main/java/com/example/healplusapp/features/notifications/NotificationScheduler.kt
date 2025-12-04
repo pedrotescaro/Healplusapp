@@ -22,10 +22,11 @@ class NotificationScheduler(private val context: Context) {
             putExtra("agendamento_id", agendamento.id ?: 0L)
             putExtra("data", agendamento.dataAgendamento)
             putExtra("hora", agendamento.horaAgendamento)
+            putExtra("hours_before", hoursBefore)
         }
         
         // ID único para cada tipo de lembrete (24h ou 1h)
-        val requestCode = ((agendamento.id ?: 0L) * 100 + hoursBefore).toInt()
+        val requestCode = getReminderRequestCode(agendamento.id ?: 0L, hoursBefore)
         
         val pendingIntent = PendingIntent.getBroadcast(
             context,
@@ -52,7 +53,7 @@ class NotificationScheduler(private val context: Context) {
         // Cancela lembrete de 24h
         val pendingIntent24h = PendingIntent.getBroadcast(
             context,
-            (agendamentoId * 100 + 24).toInt(),
+            getReminderRequestCode(agendamentoId, 24),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -61,11 +62,15 @@ class NotificationScheduler(private val context: Context) {
         // Cancela lembrete de 1h
         val pendingIntent1h = PendingIntent.getBroadcast(
             context,
-            (agendamentoId * 100 + 1).toInt(),
+            getReminderRequestCode(agendamentoId, 1),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         alarmManager.cancel(pendingIntent1h)
+    }
+    
+    private fun getReminderRequestCode(agendamentoId: Long, hoursBefore: Int): Int {
+        return ((agendamentoId * 1000) + hoursBefore).toInt()
     }
     
     private fun calculateReminderTime(agendamento: Agendamento, hoursBefore: Int): Long {

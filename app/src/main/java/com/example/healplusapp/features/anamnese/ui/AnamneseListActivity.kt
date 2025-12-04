@@ -9,7 +9,9 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.healplusapp.R
@@ -77,51 +79,55 @@ class AnamneseListActivity : AppCompatActivity() {
     
     private fun observeViewModel() {
         lifecycleScope.launch {
-            val anamnesesFlow = if (mostrarArquivadas) viewModel.anamnesesArquivadas else viewModel.anamnesesAtivas
-            
-            anamnesesFlow.collect { anamneses ->
-                val filtered = if (searchQuery.isBlank()) {
-                    anamneses
-                } else {
-                    anamneses.filter {
-                        it.nomeCompleto.contains(searchQuery, ignoreCase = true) ||
-                        it.dataConsulta?.contains(searchQuery, ignoreCase = true) == true ||
-                        it.localizacao?.contains(searchQuery, ignoreCase = true) == true
-                    }
-                }
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                val anamnesesFlow = if (mostrarArquivadas) viewModel.anamnesesArquivadas else viewModel.anamnesesAtivas
                 
-                adapter.updateList(filtered)
-                
-                val emptyState = findViewById<View>(R.id.empty_state_anamneses)
-                if (filtered.isEmpty()) {
-                    EmptyStateHelper.showEmptyState(
-                        emptyState,
-                        recyclerView,
-                        "Nenhuma anamnese encontrada",
-                        if (searchQuery.isNotBlank()) {
-                            "Tente ajustar a busca"
-                        } else {
-                            "Toque no botão + para criar uma nova anamnese"
+                anamnesesFlow.collect { anamneses ->
+                    val filtered = if (searchQuery.isBlank()) {
+                        anamneses
+                    } else {
+                        anamneses.filter {
+                            it.nomeCompleto.contains(searchQuery, ignoreCase = true) ||
+                            it.dataConsulta?.contains(searchQuery, ignoreCase = true) == true ||
+                            it.localizacao?.contains(searchQuery, ignoreCase = true) == true
                         }
-                    )
-                } else {
-                    EmptyStateHelper.hideEmptyState(emptyState, recyclerView)
+                    }
+                    
+                    adapter.updateList(filtered)
+                    
+                    val emptyState = findViewById<View>(R.id.empty_state_anamneses)
+                    if (filtered.isEmpty()) {
+                        EmptyStateHelper.showEmptyState(
+                            emptyState,
+                            recyclerView,
+                            "Nenhuma anamnese encontrada",
+                            if (searchQuery.isNotBlank()) {
+                                "Tente ajustar a busca"
+                            } else {
+                                "Toque no botão + para criar uma nova anamnese"
+                            }
+                        )
+                    } else {
+                        EmptyStateHelper.hideEmptyState(emptyState, recyclerView)
+                    }
                 }
             }
         }
         
         lifecycleScope.launch {
-            viewModel.uiState.collect { state ->
-                when (state) {
-                    is AnamneseUiState.Error -> {
-                        SnackbarHelper.showError(findViewById(android.R.id.content), state.message)
-                        viewModel.resetState()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    when (state) {
+                        is AnamneseUiState.Error -> {
+                            SnackbarHelper.showError(findViewById(android.R.id.content), state.message)
+                            viewModel.resetState()
+                        }
+                        is AnamneseUiState.Success -> {
+                            SnackbarHelper.showSuccess(findViewById(android.R.id.content), "Operação realizada com sucesso")
+                            viewModel.resetState()
+                        }
+                        else -> {}
                     }
-                    is AnamneseUiState.Success -> {
-                        SnackbarHelper.showSuccess(findViewById(android.R.id.content), "Operação realizada com sucesso")
-                        viewModel.resetState()
-                    }
-                    else -> {}
                 }
             }
         }

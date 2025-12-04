@@ -8,7 +8,9 @@ import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.healplusapp.R
@@ -85,52 +87,56 @@ class FichasActivity : AppCompatActivity() {
     
     private fun observeViewModel() {
         lifecycleScope.launch {
-            val pacientesFlow = if (mostrarArquivados) viewModel.pacientesArquivados else viewModel.pacientesAtivos
-            
-            pacientesFlow.collect { pacientes ->
-                val filtered = if (searchQuery.isBlank()) {
-                    pacientes
-                } else {
-                    pacientes.filter {
-                        it.nomeCompleto.contains(searchQuery, ignoreCase = true) ||
-                        it.telefone?.contains(searchQuery, ignoreCase = true) == true ||
-                        it.email?.contains(searchQuery, ignoreCase = true) == true ||
-                        it.profissao?.contains(searchQuery, ignoreCase = true) == true
-                    }
-                }
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                val pacientesFlow = if (mostrarArquivados) viewModel.pacientesArquivados else viewModel.pacientesAtivos
                 
-                adapter.updateList(filtered)
-                
-                val emptyState = findViewById<View>(R.id.empty_state_fichas)
-                if (filtered.isEmpty()) {
-                    EmptyStateHelper.showEmptyState(
-                        emptyState,
-                        recyclerView,
-                        "Nenhum paciente encontrado",
-                        if (searchQuery.isNotBlank()) {
-                            "Tente ajustar a busca"
-                        } else {
-                            "Toque no botão + para adicionar um novo paciente"
+                pacientesFlow.collect { pacientes ->
+                    val filtered = if (searchQuery.isBlank()) {
+                        pacientes
+                    } else {
+                        pacientes.filter {
+                            it.nomeCompleto.contains(searchQuery, ignoreCase = true) ||
+                            it.telefone?.contains(searchQuery, ignoreCase = true) == true ||
+                            it.email?.contains(searchQuery, ignoreCase = true) == true ||
+                            it.profissao?.contains(searchQuery, ignoreCase = true) == true
                         }
-                    )
-                } else {
-                    EmptyStateHelper.hideEmptyState(emptyState, recyclerView)
+                    }
+                    
+                    adapter.updateList(filtered)
+                    
+                    val emptyState = findViewById<View>(R.id.empty_state_fichas)
+                    if (filtered.isEmpty()) {
+                        EmptyStateHelper.showEmptyState(
+                            emptyState,
+                            recyclerView,
+                            "Nenhum paciente encontrado",
+                            if (searchQuery.isNotBlank()) {
+                                "Tente ajustar a busca"
+                            } else {
+                                "Toque no botão + para adicionar um novo paciente"
+                            }
+                        )
+                    } else {
+                        EmptyStateHelper.hideEmptyState(emptyState, recyclerView)
+                    }
                 }
             }
         }
         
         lifecycleScope.launch {
-            viewModel.uiState.collect { state ->
-                when (state) {
-                    is PacienteUiState.Error -> {
-                        SnackbarHelper.showError(findViewById(android.R.id.content), state.message)
-                        viewModel.resetState()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    when (state) {
+                        is PacienteUiState.Error -> {
+                            SnackbarHelper.showError(findViewById(android.R.id.content), state.message)
+                            viewModel.resetState()
+                        }
+                        is PacienteUiState.Success -> {
+                            SnackbarHelper.showSuccess(findViewById(android.R.id.content), "Operação realizada com sucesso")
+                            viewModel.resetState()
+                        }
+                        else -> {}
                     }
-                    is PacienteUiState.Success -> {
-                        SnackbarHelper.showSuccess(findViewById(android.R.id.content), "Operação realizada com sucesso")
-                        viewModel.resetState()
-                    }
-                    else -> {}
                 }
             }
         }

@@ -42,25 +42,34 @@ class DashboardViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
             
-            combine(
-                pacienteRepository.getAllAtivos(),
-                anamneseRepository.getAllAtivas(),
-                agendamentoRepository.getAllAtivos()
-            ) { pacientes, anamneses, agendamentos ->
-                DashboardData(
-                    totalPacientes = pacientes.size,
-                    anamnesesMes = anamneses.count { isThisMonth(it.dataConsulta) },
-                    proximasConsultas = agendamentos
-                        .filter { isNext7Days(it.dataAgendamento) && it.status == "agendado" }
-                        .sortedBy { parseDate(it.dataAgendamento) }
-                        .take(5),
-                    consultasPendentes = agendamentos.count { it.status == "agendado" },
-                    atividadesRecentes = getRecentActivities(anamneses, agendamentos, pacientes)
-                )
-            }.collect { data ->
+            try {
+                combine(
+                    pacienteRepository.getAllAtivos(),
+                    anamneseRepository.getAllAtivas(),
+                    agendamentoRepository.getAllAtivos()
+                ) { pacientes, anamneses, agendamentos ->
+                    DashboardData(
+                        totalPacientes = pacientes.size,
+                        anamnesesMes = anamneses.count { isThisMonth(it.dataConsulta) },
+                        proximasConsultas = agendamentos
+                            .filter { isNext7Days(it.dataAgendamento) && it.status == "agendado" }
+                            .sortedBy { parseDate(it.dataAgendamento) }
+                            .take(5),
+                        consultasPendentes = agendamentos.count { it.status == "agendado" },
+                        atividadesRecentes = getRecentActivities(anamneses, agendamentos, pacientes)
+                    )
+                }.collect { data ->
+                    _uiState.value = DashboardUiState(
+                        data = data,
+                        isLoading = false,
+                        error = null
+                    )
+                }
+            } catch (e: Exception) {
                 _uiState.value = DashboardUiState(
-                    data = data,
-                    isLoading = false
+                    data = null,
+                    isLoading = false,
+                    error = e.message ?: "Erro ao carregar dados"
                 )
             }
         }

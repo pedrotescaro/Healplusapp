@@ -11,6 +11,7 @@ class AgendamentoReminderReceiver : BroadcastReceiver() {
         val agendamentoId = intent.getLongExtra("agendamento_id", 0)
         val data = intent.getStringExtra("data") ?: ""
         val hora = intent.getStringExtra("hora") ?: ""
+        val hoursBefore = intent.getIntExtra("hours_before", 24)
         
         val agendamento = Agendamento(
             id = agendamentoId,
@@ -19,7 +20,7 @@ class AgendamentoReminderReceiver : BroadcastReceiver() {
         )
         
         val notificationService = NotificationService(context)
-        notificationService.showAgendamentoReminder(agendamento, 0)
+        notificationService.showAgendamentoReminder(agendamento, hoursBefore)
     }
 }
 

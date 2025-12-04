@@ -8,7 +8,9 @@ import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.healplusapp.R
@@ -60,7 +62,7 @@ class AgendaActivity : AppCompatActivity() {
                     this,
                     "Agendamento de ${agendamento.dataAgendamento}"
                 ) {
-                    agendamento.id?.let { viewModel.deletarAgendamento(it, this@AgendaActivity) }
+                    agendamento.id?.let { viewModel.deletarAgendamento(it) }
                 }
             }
         )
@@ -76,40 +78,44 @@ class AgendaActivity : AppCompatActivity() {
     
     private fun observeViewModel() {
         lifecycleScope.launch {
-            viewModel.agendamentosAtivos.collect { agendamentos ->
-                val filtered = applyFilters(agendamentos)
-                adapter.updateList(filtered)
-                
-                val emptyState = findViewById<View>(R.id.empty_state_agenda)
-                if (filtered.isEmpty()) {
-                    EmptyStateHelper.showEmptyState(
-                        emptyState,
-                        recyclerView,
-                        "Nenhum agendamento encontrado",
-                        if (searchQuery.isNotBlank() || filterStatus != null || filterData != null) {
-                            "Tente ajustar os filtros de busca"
-                        } else {
-                            "Toque no botão + para adicionar um novo agendamento"
-                        }
-                    )
-                } else {
-                    EmptyStateHelper.hideEmptyState(emptyState, recyclerView)
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.agendamentosAtivos.collect { agendamentos ->
+                    val filtered = applyFilters(agendamentos)
+                    adapter.updateList(filtered)
+                    
+                    val emptyState = findViewById<View>(R.id.empty_state_agenda)
+                    if (filtered.isEmpty()) {
+                        EmptyStateHelper.showEmptyState(
+                            emptyState,
+                            recyclerView,
+                            "Nenhum agendamento encontrado",
+                            if (searchQuery.isNotBlank() || filterStatus != null || filterData != null) {
+                                "Tente ajustar os filtros de busca"
+                            } else {
+                                "Toque no botão + para adicionar um novo agendamento"
+                            }
+                        )
+                    } else {
+                        EmptyStateHelper.hideEmptyState(emptyState, recyclerView)
+                    }
                 }
             }
         }
         
         lifecycleScope.launch {
-            viewModel.uiState.collect { state ->
-                when (state) {
-                    is AgendamentoUiState.Error -> {
-                        SnackbarHelper.showError(findViewById(android.R.id.content), state.message)
-                        viewModel.resetState()
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state ->
+                    when (state) {
+                        is AgendamentoUiState.Error -> {
+                            SnackbarHelper.showError(findViewById(android.R.id.content), state.message)
+                            viewModel.resetState()
+                        }
+                        is AgendamentoUiState.Success -> {
+                            SnackbarHelper.showSuccess(findViewById(android.R.id.content), "Operação realizada com sucesso")
+                            viewModel.resetState()
+                        }
+                        else -> {}
                     }
-                    is AgendamentoUiState.Success -> {
-                        SnackbarHelper.showSuccess(findViewById(android.R.id.content), "Operação realizada com sucesso")
-                        viewModel.resetState()
-                    }
-                    else -> {}
                 }
             }
         }

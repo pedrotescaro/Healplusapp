@@ -83,7 +83,7 @@ class AgendamentoFormActivity : AppCompatActivity() {
             status = status
         )
 
-        viewModel.salvarAgendamento(agendamento, this)
+        viewModel.salvarAgendamento(agendamento)
     }
 
     private fun observeState() {
