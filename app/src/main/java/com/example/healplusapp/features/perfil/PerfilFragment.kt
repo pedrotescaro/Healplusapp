@@ -1,7 +1,5 @@
 package com.example.healplusapp.features.perfil
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,15 +12,11 @@ import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import coil.load
 import com.example.healplusapp.R
 import com.example.healplusapp.settings.UserSettings
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.net.URL
 import java.util.Locale
 
 class PerfilFragment : Fragment() {
@@ -110,29 +104,18 @@ class PerfilFragment : Fragment() {
             textName?.text = user.displayName ?: "Usuário"
             textEmail?.text = user.email ?: ""
 
-            // Carrega foto do perfil
+            // Carrega foto do perfil usando Coil (com cache automático)
             val photoUrl = user.photoUrl
             if (photoUrl != null && imageView != null) {
-                loadImageFromUrl(photoUrl.toString(), imageView)
+                imageView.load(photoUrl.toString()) {
+                    crossfade(true)
+                    placeholder(R.drawable.ic_image)
+                    error(R.drawable.ic_image)
+                }
             }
         } else {
             textName?.text = "Usuário não autenticado"
             textEmail?.text = ""
-        }
-    }
-
-    private fun loadImageFromUrl(urlString: String, imageView: ImageView) {
-        lifecycleScope.launch {
-            try {
-                val bitmap = withContext(Dispatchers.IO) {
-                    val url = URL(urlString)
-                    BitmapFactory.decodeStream(url.openConnection().getInputStream())
-                }
-                imageView.setImageBitmap(bitmap)
-            } catch (e: Exception) {
-                // Se falhar, mantém a imagem padrão
-                e.printStackTrace()
-            }
         }
     }
 }

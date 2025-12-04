@@ -8,25 +8,42 @@ plugins {
 
 android {
     namespace = "com.example.healplusapp"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.healplusapp"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        
+        // Otimizações de build
+        multiDexEnabled = true
     }
 
     buildTypes {
-        release {
+        debug {
             isMinifyEnabled = false
+            isDebuggable = true
+            // Otimizações para debug
+            isShrinkResources = false
+        }
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+    
+    // Otimizações de compilação
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
     compileOptions {
@@ -57,8 +74,7 @@ dependencies {
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
     implementation(libs.googleid)
-    implementation("androidx.activity:activity:1.11.0")
-    implementation(libs.play.services.auth)
+    implementation("androidx.activity:activity-ktx:1.11.0")
     implementation(libs.play.services.auth)
     implementation(libs.androidx.ui.text.android)
     // Use the alias from the version catalog
@@ -88,6 +104,9 @@ dependencies {
     
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+
+    // Coil para carregamento eficiente de imagens
+    implementation(libs.coil)
 
     implementation(platform("com.google.firebase:firebase-bom:34.6.0"))
     implementation("com.google.firebase:firebase-analytics")

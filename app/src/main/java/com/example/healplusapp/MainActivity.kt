@@ -56,29 +56,41 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        // Verifica autenticação primeiro (operação rápida)
         if (FirebaseAuth.getInstance().currentUser == null) {
             startActivity(Intent(this, com.example.healplusapp.features.auth.LoginActivity::class.java))
             finish()
             return
         }
 
+        // Carrega configurações (operação rápida)
         val userSettings = UserSettings(this)
         sharedPrefs = userSettings.getSharedPreferences().also {
             it.registerOnSharedPreferenceChangeListener(prefListener)
         }
 
+        // Aplica tema antes de setContentView
         if (sharedPrefs?.getBoolean("pref_high_contrast", false) == true) {
             theme.applyStyle(R.style.ThemeOverlay_Heal_HighContrast, true)
         }
 
         setContentView(R.layout.activity_main)
+        
+        // Inicializa componentes da UI (operação rápida)
         profileDocumentId = Settings.Secure.getString(contentResolver, Settings.Secure.ANDROID_ID)
             ?: UUID.randomUUID().toString()
 
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        setupNavigation()
 
-        val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as androidx.navigation.fragment.NavHostFragment
-        val navController = navHost.navController
+        // Operações pesadas em background (não bloqueiam onCreate)
+        setupFirestoreBackends()
+    }
+    
+    private fun setupNavigation() {
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
+        val navHost = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as? androidx.navigation.fragment.NavHostFragment
+        val navController = navHost?.navController ?: return
 
         bottomNav.setOnItemSelectedListener { item ->
             if (item.itemId == R.id.novaAnamneseFragment) {
@@ -91,8 +103,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         bottomNav.setOnItemReselectedListener { }
-
-        setupFirestoreBackends()
     }
 
     override fun onDestroy() {
@@ -101,9 +111,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupFirestoreBackends() {
+        // Inicia observadores de forma assíncrona (não bloqueia onCreate)
         observeAnamneses()
         observeAgendamentos()
         observePacientes()
+        // Sincroniza configurações do perfil de forma assíncrona
         sharedPrefs?.let { syncProfileSettingsSnapshot(it) }
     }
 

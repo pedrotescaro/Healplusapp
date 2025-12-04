@@ -1,7 +1,5 @@
 package com.example.healplusapp.features.dashboard
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,15 +8,11 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
+import coil.load
 import com.example.healplusapp.R
 import android.content.Intent
 import com.example.healplusapp.features.anamnese.ui.AnamneseListActivity
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.net.URL
 
 class DashboardFragment : Fragment() {
     
@@ -51,28 +45,17 @@ class DashboardFragment : Fragment() {
             val userName = user.displayName ?: user.email?.substringBefore("@") ?: "Usuário"
             textUser?.text = "Olá, $userName!"
 
-            // Carrega foto do perfil
+            // Carrega foto do perfil usando Coil (com cache automático)
             val photoUrl = user.photoUrl
             if (photoUrl != null && imageView != null) {
-                loadImageFromUrl(photoUrl.toString(), imageView)
+                imageView.load(photoUrl.toString()) {
+                    crossfade(true)
+                    placeholder(R.drawable.ic_image)
+                    error(R.drawable.ic_image)
+                }
             }
         } else {
             textUser?.text = "Bem-vindo!"
-        }
-    }
-
-    private fun loadImageFromUrl(urlString: String, imageView: ImageView) {
-        lifecycleScope.launch {
-            try {
-                val bitmap = withContext(Dispatchers.IO) {
-                    val url = URL(urlString)
-                    BitmapFactory.decodeStream(url.openConnection().getInputStream())
-                }
-                imageView.setImageBitmap(bitmap)
-            } catch (e: Exception) {
-                // Se falhar, mantém a imagem padrão
-                e.printStackTrace()
-            }
         }
     }
 }
