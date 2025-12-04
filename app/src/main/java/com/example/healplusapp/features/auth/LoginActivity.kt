@@ -5,13 +5,14 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AppCompatActivity
 import com.example.healplusapp.MainActivity
 import com.example.healplusapp.R
 import com.google.android.gms.auth.api.identity.GetSignInIntentRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.android.gms.auth.api.identity.SignInClient
-import com.google.android.gms.auth.api.identity.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 
@@ -20,11 +21,11 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var auth: FirebaseAuth
     private lateinit var signInClient: SignInClient
 
-    private val googleLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    private val googleLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
         val data = result.data
         if (result.resultCode == RESULT_OK && data != null) {
             try {
-                val cred = GoogleIdTokenCredential.fromIntent(data)
+                val cred = GoogleIdTokenCredential.createFrom(data.extras!!)
                 val token = cred.idToken
                 val firebaseCred = GoogleAuthProvider.getCredential(token, null)
                 auth.signInWithCredential(firebaseCred).addOnCompleteListener { task ->
@@ -35,7 +36,7 @@ class LoginActivity : AppCompatActivity() {
                         Toast.makeText(this, "Falha no login com Google", Toast.LENGTH_LONG).show()
                     }
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Toast.makeText(this, "Erro ao obter credencial do Google", Toast.LENGTH_LONG).show()
             }
         } else {
@@ -91,7 +92,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun loginGoogle() {
         val clientId = getString(R.string.default_web_client_id)
-        if (clientId.isBlank() || clientId == "REPLACE_ME_WITH_CLIENT_ID") {
+        if (clientId.isBlank() || clientId == "453362559960-ccrm0tggg00mdeo6r7lh8jh4utdpjk68.apps.googleusercontent.com") {
             Toast.makeText(this, "Configure o clientId do Google no Firebase", Toast.LENGTH_LONG).show()
             return
         }
@@ -99,7 +100,12 @@ class LoginActivity : AppCompatActivity() {
             .setServerClientId(clientId)
             .build()
         signInClient.getSignInIntent(request)
-        googleLauncher.launch(signInClient.getSignInIntent(request))
+            .addOnSuccessListener { pendingIntent ->
+                val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent.intentSender).build()
+                googleLauncher.launch(intentSenderRequest)
+            }
+            .addOnFailureListener { e ->
+                Toast.makeText(this, "Falha ao obter intenção de login: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
+            }
     }
 }
-
