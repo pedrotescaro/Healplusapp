@@ -4,9 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toast
+import android.view.View
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,6 +15,9 @@ import com.example.healplusapp.R
 import com.example.healplusapp.features.fichas.model.Paciente
 import com.example.healplusapp.features.fichas.viewmodel.PacienteViewModel
 import com.example.healplusapp.features.fichas.viewmodel.PacienteUiState
+import com.example.healplusapp.utils.DialogHelper
+import com.example.healplusapp.utils.EmptyStateHelper
+import com.example.healplusapp.utils.SnackbarHelper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -25,6 +29,7 @@ class FichasActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: FichasAdapter
     private var mostrarArquivados = false
+    private var searchQuery = ""
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,16 +55,23 @@ class FichasActivity : AppCompatActivity() {
                 startActivity(intent)
             },
             onItemLongClick = { paciente ->
-                val dlg = androidx.appcompat.app.AlertDialog.Builder(this)
+                androidx.appcompat.app.AlertDialog.Builder(this)
                     .setTitle(paciente.nomeCompleto)
                     .setItems(arrayOf("Arquivar", "Deletar")) { _, which ->
                         when (which) {
-                            0 -> paciente.id?.let { viewModel.arquivarPaciente(it) }
-                            1 -> paciente.id?.let { viewModel.deletarPaciente(it) }
+                            0 -> paciente.id?.let {
+                                DialogHelper.showArchiveConfirmDialog(this, paciente.nomeCompleto) {
+                                    viewModel.arquivarPaciente(it)
+                                }
+                            }
+                            1 -> paciente.id?.let {
+                                DialogHelper.showDeleteConfirmDialog(this, paciente.nomeCompleto) {
+                                    viewModel.deletarPaciente(it)
+                                }
+                            }
                         }
                     }
-                    .create()
-                dlg.show()
+                    .show()
             }
         )
         recyclerView.adapter = adapter
@@ -73,17 +85,36 @@ class FichasActivity : AppCompatActivity() {
     
     private fun observeViewModel() {
         lifecycleScope.launch {
-            viewModel.pacientesAtivos.collect { pacientes ->
-                if (!mostrarArquivados) {
-                    adapter.updateList(pacientes)
+            val pacientesFlow = if (mostrarArquivados) viewModel.pacientesArquivados else viewModel.pacientesAtivos
+            
+            pacientesFlow.collect { pacientes ->
+                val filtered = if (searchQuery.isBlank()) {
+                    pacientes
+                } else {
+                    pacientes.filter {
+                        it.nomeCompleto.contains(searchQuery, ignoreCase = true) ||
+                        it.telefone?.contains(searchQuery, ignoreCase = true) == true ||
+                        it.email?.contains(searchQuery, ignoreCase = true) == true ||
+                        it.profissao?.contains(searchQuery, ignoreCase = true) == true
+                    }
                 }
-            }
-        }
-        
-        lifecycleScope.launch {
-            viewModel.pacientesArquivados.collect { pacientes ->
-                if (mostrarArquivados) {
-                    adapter.updateList(pacientes)
+                
+                adapter.updateList(filtered)
+                
+                val emptyState = findViewById<View>(R.id.empty_state_fichas)
+                if (filtered.isEmpty()) {
+                    EmptyStateHelper.showEmptyState(
+                        emptyState,
+                        recyclerView,
+                        "Nenhum paciente encontrado",
+                        if (searchQuery.isNotBlank()) {
+                            "Tente ajustar a busca"
+                        } else {
+                            "Toque no botão + para adicionar um novo paciente"
+                        }
+                    )
+                } else {
+                    EmptyStateHelper.hideEmptyState(emptyState, recyclerView)
                 }
             }
         }
@@ -92,7 +123,11 @@ class FichasActivity : AppCompatActivity() {
             viewModel.uiState.collect { state ->
                 when (state) {
                     is PacienteUiState.Error -> {
-                        Toast.makeText(this@FichasActivity, state.message, Toast.LENGTH_LONG).show()
+                        SnackbarHelper.showError(findViewById(android.R.id.content), state.message)
+                        viewModel.resetState()
+                    }
+                    is PacienteUiState.Success -> {
+                        SnackbarHelper.showSuccess(findViewById(android.R.id.content), "Operação realizada com sucesso")
                         viewModel.resetState()
                     }
                     else -> {}
@@ -103,6 +138,17 @@ class FichasActivity : AppCompatActivity() {
     
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_fichas, menu)
+        
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = false
+            override fun onQueryTextChange(newText: String?): Boolean {
+                searchQuery = newText ?: ""
+                return true
+            }
+        })
+        
         return true
     }
     

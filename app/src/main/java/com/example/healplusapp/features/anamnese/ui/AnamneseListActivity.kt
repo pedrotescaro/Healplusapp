@@ -17,6 +17,7 @@ import com.example.healplusapp.features.anamnese.model.Anamnese
 import com.example.healplusapp.features.anamnese.viewmodel.AnamneseViewModel
 import com.example.healplusapp.features.anamnese.viewmodel.AnamneseUiState
 import com.example.healplusapp.utils.DialogHelper
+import com.example.healplusapp.utils.EmptyStateHelper
 import com.example.healplusapp.utils.SnackbarHelper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
@@ -90,8 +91,22 @@ class AnamneseListActivity : AppCompatActivity() {
                 }
                 
                 adapter.updateList(filtered)
-                findViewById<View>(R.id.tv_empty).visibility = 
-                    if (filtered.isEmpty()) View.VISIBLE else View.GONE
+                
+                val emptyState = findViewById<View>(R.id.empty_state_anamneses)
+                if (filtered.isEmpty()) {
+                    EmptyStateHelper.showEmptyState(
+                        emptyState,
+                        recyclerView,
+                        "Nenhuma anamnese encontrada",
+                        if (searchQuery.isNotBlank()) {
+                            "Tente ajustar a busca"
+                        } else {
+                            "Toque no botão + para criar uma nova anamnese"
+                        }
+                    )
+                } else {
+                    EmptyStateHelper.hideEmptyState(emptyState, recyclerView)
+                }
             }
         }
         

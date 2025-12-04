@@ -63,6 +63,9 @@ class MainActivity : AppCompatActivity() {
             finish()
             return
         }
+        
+        // Solicita permissões de notificação
+        com.example.healplusapp.utils.PermissionHelper.requestNotificationPermission(this, 100)
 
         // Carrega configurações (operação rápida)
         val userSettings = UserSettings(this)

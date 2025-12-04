@@ -56,6 +56,10 @@
             android:name=".features.agenda.ui.AgendaActivity"
             android:exported="false" />
 
+        <activity
+            android:name=".features.agenda.ui.AgendamentoFormActivity"
+            android:exported="false" />
+
         <receiver
             android:name=".features.notifications.AgendamentoReminderReceiver"
             android:exported="false" />

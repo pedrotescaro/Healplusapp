@@ -32,6 +32,14 @@
         android:paddingBottom="80dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
+    <include
+        android:id="@+id/empty_state_fichas"
+        layout="@layout/empty_state"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fab_adicionar_ficha"
         android:layout_width="wrap_content"

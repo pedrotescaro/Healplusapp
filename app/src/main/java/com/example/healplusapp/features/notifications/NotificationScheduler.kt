@@ -19,14 +19,17 @@ class NotificationScheduler(private val context: Context) {
         if (reminderTime <= System.currentTimeMillis()) return
         
         val intent = Intent(context, AgendamentoReminderReceiver::class.java).apply {
-            putExtra("agendamento_id", agendamento.id)
+            putExtra("agendamento_id", agendamento.id ?: 0L)
             putExtra("data", agendamento.dataAgendamento)
             putExtra("hora", agendamento.horaAgendamento)
         }
         
+        // ID único para cada tipo de lembrete (24h ou 1h)
+        val requestCode = ((agendamento.id ?: 0L) * 100 + hoursBefore).toInt()
+        
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            agendamento.id?.toInt() ?: 0,
+            requestCode,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -43,14 +46,26 @@ class NotificationScheduler(private val context: Context) {
     }
     
     fun cancelAgendamentoReminder(agendamentoId: Long) {
+        // Cancela ambos os lembretes (24h e 1h)
         val intent = Intent(context, AgendamentoReminderReceiver::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
+        
+        // Cancela lembrete de 24h
+        val pendingIntent24h = PendingIntent.getBroadcast(
             context,
-            agendamentoId.toInt(),
+            (agendamentoId * 100 + 24).toInt(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        alarmManager.cancel(pendingIntent)
+        alarmManager.cancel(pendingIntent24h)
+        
+        // Cancela lembrete de 1h
+        val pendingIntent1h = PendingIntent.getBroadcast(
+            context,
+            (agendamentoId * 100 + 1).toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        alarmManager.cancel(pendingIntent1h)
     }
     
     private fun calculateReminderTime(agendamento: Agendamento, hoursBefore: Int): Long {
