@@ -7,8 +7,8 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,8 +16,11 @@ import com.example.healplusapp.R
 import com.example.healplusapp.features.anamnese.model.Anamnese
 import com.example.healplusapp.features.anamnese.viewmodel.AnamneseViewModel
 import com.example.healplusapp.features.anamnese.viewmodel.AnamneseUiState
+import com.example.healplusapp.utils.DialogHelper
+import com.example.healplusapp.utils.SnackbarHelper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -27,6 +30,7 @@ class AnamneseListActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: AnamneseAdapter
     private var mostrarArquivadas = false
+    private var searchQuery = ""
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,22 +76,22 @@ class AnamneseListActivity : AppCompatActivity() {
     
     private fun observeViewModel() {
         lifecycleScope.launch {
-            viewModel.anamnesesAtivas.collect { anamneses ->
-                if (!mostrarArquivadas) {
-                    adapter.updateList(anamneses)
-                    findViewById<View>(R.id.tv_empty).visibility = 
-                        if (anamneses.isEmpty()) View.VISIBLE else View.GONE
+            val anamnesesFlow = if (mostrarArquivadas) viewModel.anamnesesArquivadas else viewModel.anamnesesAtivas
+            
+            anamnesesFlow.collect { anamneses ->
+                val filtered = if (searchQuery.isBlank()) {
+                    anamneses
+                } else {
+                    anamneses.filter {
+                        it.nomeCompleto.contains(searchQuery, ignoreCase = true) ||
+                        it.dataConsulta?.contains(searchQuery, ignoreCase = true) == true ||
+                        it.localizacao?.contains(searchQuery, ignoreCase = true) == true
+                    }
                 }
-            }
-        }
-        
-        lifecycleScope.launch {
-            viewModel.anamnesesArquivadas.collect { anamneses ->
-                if (mostrarArquivadas) {
-                    adapter.updateList(anamneses)
-                    findViewById<View>(R.id.tv_empty).visibility = 
-                        if (anamneses.isEmpty()) View.VISIBLE else View.GONE
-                }
+                
+                adapter.updateList(filtered)
+                findViewById<View>(R.id.tv_empty).visibility = 
+                    if (filtered.isEmpty()) View.VISIBLE else View.GONE
             }
         }
         
@@ -95,7 +99,11 @@ class AnamneseListActivity : AppCompatActivity() {
             viewModel.uiState.collect { state ->
                 when (state) {
                     is AnamneseUiState.Error -> {
-                        Toast.makeText(this@AnamneseListActivity, state.message, Toast.LENGTH_LONG).show()
+                        SnackbarHelper.showError(findViewById(android.R.id.content), state.message)
+                        viewModel.resetState()
+                    }
+                    is AnamneseUiState.Success -> {
+                        SnackbarHelper.showSuccess(findViewById(android.R.id.content), "Operação realizada com sucesso")
                         viewModel.resetState()
                     }
                     else -> {}
@@ -106,6 +114,21 @@ class AnamneseListActivity : AppCompatActivity() {
     
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_anamnese_list, menu)
+        
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView
+        searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+            
+            override fun onQueryTextChange(newText: String?): Boolean {
+                searchQuery = newText ?: ""
+                // A lista será atualizada automaticamente pelo observer
+                return true
+            }
+        })
+        
         return true
     }
     
@@ -132,14 +155,12 @@ class AnamneseListActivity : AppCompatActivity() {
     }
     
     private fun arquivarAnamnese(anamnese: Anamnese) {
-        AlertDialog.Builder(this)
-            .setTitle("Arquivar anamnese")
-            .setMessage("Deseja arquivar '${anamnese.nomeCompleto}'? Os dados não serão deletados, apenas arquivados.")
-            .setPositiveButton("Arquivar") { _, _ ->
-                anamnese.id?.let { viewModel.arquivarAnamnese(it) }
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
+        DialogHelper.showArchiveConfirmDialog(
+            this,
+            anamnese.nomeCompleto
+        ) {
+            anamnese.id?.let { viewModel.arquivarAnamnese(it) }
+        }
     }
 }
 

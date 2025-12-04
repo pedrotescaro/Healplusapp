@@ -25,4 +25,10 @@
     <color name="heal_border">#E5EAF3</color> <!-- hsl(214 32% 91.4%) -->
     <color name="heal_input">#E5EAF3</color>
     <color name="heal_ring">#3B82F6</color>
+    
+    <!-- Cores para estatísticas do Dashboard -->
+    <color name="stat_pacientes">#4CAF50</color>
+    <color name="stat_anamneses">#2196F3</color>
+    <color name="stat_consultas">#FF9800</color>
+    <color name="stat_pendentes">#F44336</color>
 </resources>

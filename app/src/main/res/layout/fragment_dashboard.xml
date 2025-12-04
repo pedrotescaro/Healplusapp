@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/swipe_refresh"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.google.android.material.card.MaterialCardView
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp">
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -17,61 +17,355 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <LinearLayout
+            <!-- Header com foto e saudação -->
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-
-                <ImageView
-                    android:id="@+id/image_dashboard_photo"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
-                    android:src="@drawable/ic_image"
-                    android:scaleType="centerCrop"
-                    android:background="?attr/colorSurfaceVariant"
-                    android:contentDescription="Foto do perfil"
-                    android:layout_marginEnd="12dp" />
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="16dp">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/title_dashboard"
-                        android:textAppearance="?attr/textAppearanceTitleLarge"
-                        android:textColor="?attr/colorOnSurface"
-                        android:textStyle="bold" />
+                    <ImageView
+                        android:id="@+id/image_dashboard_photo"
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@drawable/ic_image"
+                        android:scaleType="centerCrop"
+                        android:background="?attr/colorSurfaceVariant"
+                        android:contentDescription="Foto do perfil"
+                        android:layout_marginEnd="12dp" />
 
-                    <TextView
-                        android:id="@+id/text_dashboard_user"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:text="Bem-vindo!"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/title_dashboard"
+                            android:textAppearance="?attr/textAppearanceTitleLarge"
+                            android:textColor="?attr/colorOnSurface"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/text_dashboard_user"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Bem-vindo!"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant" />
+                    </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/subtitle_dashboard"
-                android:textAppearance="?attr/textAppearanceBodyMedium"
-                android:textColor="?attr/colorOnSurfaceVariant"
-                android:layout_marginBottom="16dp" />
-
-            <Button
-                android:id="@+id/btn_open_anamnese_list"
-                style="@style/Heal.Button"
+            <!-- Cards de Estatísticas -->
+            <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/menu_nova_anamnese" />
+                android:columnCount="2"
+                android:rowCount="2"
+                android:layout_marginBottom="16dp">
+
+                <!-- Total de Pacientes -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pacientes Ativos"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:id="@+id/stat_total_pacientes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                            android:textColor="@color/stat_pacientes"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Anamneses do Mês -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Anamneses do Mês"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:id="@+id/stat_anamneses_mes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                            android:textColor="@color/stat_anamneses"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Próximas Consultas -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Próximas 7 Dias"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:id="@+id/stat_proximas_consultas"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                            android:textColor="@color/stat_consultas"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Consultas Pendentes -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_margin="4dp"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="2dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp"
+                        android:gravity="center">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Pendentes"
+                            android:textAppearance="?attr/textAppearanceBodySmall"
+                            android:textColor="?attr/colorOnSurfaceVariant"
+                            android:layout_marginBottom="8dp" />
+
+                        <TextView
+                            android:id="@+id/stat_consultas_pendentes"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textAppearance="?attr/textAppearanceHeadlineMedium"
+                            android:textColor="@color/stat_pendentes"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </GridLayout>
+
+            <!-- Atalhos Rápidos -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ações Rápidas"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:weightSum="3">
+
+                        <Button
+                            android:id="@+id/btn_nova_anamnese"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Anamnese"
+                            android:layout_marginEnd="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_novo_paciente"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Paciente"
+                            android:layout_marginEnd="8dp" />
+
+                        <Button
+                            android:id="@+id/btn_nova_consulta"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Consulta" />
+                    </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Próximas Consultas -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Próximas Consultas"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recycler_proximas_consultas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/empty_proximas_consultas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Nenhuma consulta agendada para os próximos 7 dias"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:gravity="center"
+                        android:padding="24dp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Atividades Recentes -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Atividades Recentes"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurface"
+                        android:textStyle="bold"
+                        android:layout_marginBottom="12dp" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recycler_atividades_recentes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                    <TextView
+                        android:id="@+id/empty_atividades"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Nenhuma atividade recente"
+                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:gravity="center"
+                        android:padding="24dp"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Loading State -->
+            <ProgressBar
+                android:id="@+id/progress_loading"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_margin="24dp"
+                android:visibility="gone" />
+
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-</ScrollView>
+    </ScrollView>
+</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
