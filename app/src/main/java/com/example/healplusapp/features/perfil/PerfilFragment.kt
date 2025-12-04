@@ -1,24 +1,34 @@
 package com.example.healplusapp.features.perfil
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.SeekBar
 import android.widget.Spinner
 import android.widget.Switch
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.healplusapp.R
 import com.example.healplusapp.settings.UserSettings
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.net.URL
 import java.util.Locale
 
 class PerfilFragment : Fragment() {
 
     private lateinit var settings: UserSettings
+    private val auth = FirebaseAuth.getInstance()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -35,6 +45,9 @@ class PerfilFragment : Fragment() {
         settings = UserSettings(requireContext())
 
         Snackbar.make(view, getString(R.string.menu_perfil), Snackbar.LENGTH_SHORT).show()
+
+        // Carrega informações do usuário
+        loadUserInfo(view)
 
         val switchDark = view.findViewById<Switch>(R.id.switch_dark_mode)
         val switchContrast = view.findViewById<Switch>(R.id.switch_high_contrast)
@@ -83,6 +96,43 @@ class PerfilFragment : Fragment() {
             // 🔹 recria a Activity para aplicar idioma e escala
             settings.applyToActivity(requireActivity())
             Snackbar.make(view, "Preferências salvas", Snackbar.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadUserInfo(view: View) {
+        val user = auth.currentUser
+        val imageView = view.findViewById<ImageView>(R.id.image_profile_photo)
+        val textName = view.findViewById<TextView>(R.id.text_profile_name)
+        val textEmail = view.findViewById<TextView>(R.id.text_profile_email)
+
+        if (user != null) {
+            // Atualiza nome e email
+            textName?.text = user.displayName ?: "Usuário"
+            textEmail?.text = user.email ?: ""
+
+            // Carrega foto do perfil
+            val photoUrl = user.photoUrl
+            if (photoUrl != null && imageView != null) {
+                loadImageFromUrl(photoUrl.toString(), imageView)
+            }
+        } else {
+            textName?.text = "Usuário não autenticado"
+            textEmail?.text = ""
+        }
+    }
+
+    private fun loadImageFromUrl(urlString: String, imageView: ImageView) {
+        lifecycleScope.launch {
+            try {
+                val bitmap = withContext(Dispatchers.IO) {
+                    val url = URL(urlString)
+                    BitmapFactory.decodeStream(url.openConnection().getInputStream())
+                }
+                imageView.setImageBitmap(bitmap)
+            } catch (e: Exception) {
+                // Se falhar, mantém a imagem padrão
+                e.printStackTrace()
+            }
         }
     }
 }

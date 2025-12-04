@@ -12,7 +12,12 @@
           "package_name": "com.example.healplusapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "453362559960-ccrm0tggg00mdeo6r7lh8jh4utdpjk68.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBb7hea6aUjofYCeyqGuLhm2u-EdrwP5Og"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "453362559960-ccrm0tggg00mdeo6r7lh8jh4utdpjk68.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
