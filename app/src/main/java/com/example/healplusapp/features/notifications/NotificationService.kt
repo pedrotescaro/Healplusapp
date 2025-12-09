@@ -81,17 +81,18 @@ class NotificationService(private val context: Context) {
             "Você tem ${agendamentos.size} consultas hoje"
         }
         
+        val inboxStyle = NotificationCompat.InboxStyle()
+            .setBigContentTitle("Consultas de Hoje")
+        
+        agendamentos.take(5).forEach { agendamento ->
+            inboxStyle.addLine("${agendamento.dataAgendamento} - ${agendamento.horaAgendamento ?: ""}")
+        }
+        
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_image)
             .setContentTitle("Consultas de Hoje")
             .setContentText(contentText)
-            .setStyle(NotificationCompat.InboxStyle()
-                .setBigContentTitle("Consultas de Hoje")
-                .apply {
-                    agendamentos.take(5).forEach { agendamento ->
-                        addLine("${agendamento.dataAgendamento} - ${agendamento.horaAgendamento ?: ""}")
-                    }
-                })
+            .setStyle(inboxStyle)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)

@@ -15,8 +15,10 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import coil.load
 import com.example.healplusapp.R
+import com.example.healplusapp.features.agenda.model.Agendamento
 import com.example.healplusapp.features.anamnese.ui.AnamneseFormActivity
 import com.example.healplusapp.features.anamnese.ui.AnamneseListActivity
 import com.example.healplusapp.features.fichas.ui.PacienteFormActivity
@@ -32,7 +34,7 @@ class DashboardFragment : Fragment() {
     private val auth = FirebaseAuth.getInstance()
     private val viewModel: DashboardViewModel by viewModels()
     
-    private lateinit var swipeRefresh: androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+    private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var progressLoading: ProgressBar
     private lateinit var statTotalPacientes: TextView
     private lateinit var statAnamnesesMes: TextView
@@ -65,16 +67,16 @@ class DashboardFragment : Fragment() {
     }
     
     private fun initViews(view: View) {
-        swipeRefresh = view.findViewById(R.id.swipe_refresh)
-        progressLoading = view.findViewById(R.id.progress_loading)
-        statTotalPacientes = view.findViewById(R.id.stat_total_pacientes)
-        statAnamnesesMes = view.findViewById(R.id.stat_anamneses_mes)
-        statProximasConsultas = view.findViewById(R.id.stat_proximas_consultas)
-        statConsultasPendentes = view.findViewById(R.id.stat_consultas_pendentes)
-        recyclerProximasConsultas = view.findViewById(R.id.recycler_proximas_consultas)
-        recyclerAtividadesRecentes = view.findViewById(R.id.recycler_atividades_recentes)
-        emptyProximasConsultas = view.findViewById(R.id.empty_proximas_consultas)
-        emptyAtividades = view.findViewById(R.id.empty_atividades)
+        swipeRefresh = requireNotNull(view.findViewById(R.id.swipe_refresh))
+        progressLoading = requireNotNull(view.findViewById(R.id.progress_loading))
+        statTotalPacientes = requireNotNull(view.findViewById(R.id.stat_total_pacientes))
+        statAnamnesesMes = requireNotNull(view.findViewById(R.id.stat_anamneses_mes))
+        statProximasConsultas = requireNotNull(view.findViewById(R.id.stat_proximas_consultas))
+        statConsultasPendentes = requireNotNull(view.findViewById(R.id.stat_consultas_pendentes))
+        recyclerProximasConsultas = requireNotNull(view.findViewById(R.id.recycler_proximas_consultas))
+        recyclerAtividadesRecentes = requireNotNull(view.findViewById(R.id.recycler_atividades_recentes))
+        emptyProximasConsultas = requireNotNull(view.findViewById(R.id.empty_proximas_consultas))
+        emptyAtividades = requireNotNull(view.findViewById(R.id.empty_atividades))
         
         swipeRefresh.setOnRefreshListener {
             viewModel.refresh()
@@ -82,7 +84,7 @@ class DashboardFragment : Fragment() {
     }
     
     private fun setupRecyclerViews() {
-        proximasConsultasAdapter = ProximasConsultasAdapter { agendamento ->
+        proximasConsultasAdapter = ProximasConsultasAdapter { agendamento: Agendamento ->
             // Navegar para detalhes do agendamento
             Snackbar.make(requireView(), "Consulta: ${agendamento.dataAgendamento}", Snackbar.LENGTH_SHORT).show()
         }
@@ -97,15 +99,15 @@ class DashboardFragment : Fragment() {
     }
     
     private fun setupClickListeners() {
-        view.findViewById<View>(R.id.btn_nova_anamnese).setOnClickListener {
+        requireView().findViewById<View>(R.id.btn_nova_anamnese)?.setOnClickListener {
             startActivity(Intent(requireContext(), AnamneseFormActivity::class.java))
         }
         
-        view.findViewById<View>(R.id.btn_novo_paciente).setOnClickListener {
+        requireView().findViewById<View>(R.id.btn_novo_paciente)?.setOnClickListener {
             startActivity(Intent(requireContext(), PacienteFormActivity::class.java))
         }
         
-        view.findViewById<View>(R.id.btn_nova_consulta).setOnClickListener {
+        requireView().findViewById<View>(R.id.btn_nova_consulta)?.setOnClickListener {
             // TODO: Navegar para criar agendamento
             Snackbar.make(requireView(), "Funcionalidade em desenvolvimento", Snackbar.LENGTH_SHORT).show()
         }

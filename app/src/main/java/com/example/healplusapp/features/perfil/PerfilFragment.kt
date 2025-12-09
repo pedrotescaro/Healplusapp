@@ -1,5 +1,6 @@
 package com.example.healplusapp.features.perfil
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -14,6 +15,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import coil.load
 import com.example.healplusapp.R
+import com.example.healplusapp.features.auth.LoginActivity
 import com.example.healplusapp.settings.UserSettings
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
@@ -49,6 +51,7 @@ class PerfilFragment : Fragment() {
         val textFont = view.findViewById<TextView>(R.id.text_font_scale)
         val spinnerLang = view.findViewById<Spinner>(R.id.spinner_language)
         val buttonSave = view.findViewById<Button>(R.id.button_save_prefs)
+        val buttonLogout = view.findViewById<Button>(R.id.button_logout)
 
         // Carrega configurações salvas
         val prefs = settings.getSharedPreferences()
@@ -91,6 +94,21 @@ class PerfilFragment : Fragment() {
             settings.applyToActivity(requireActivity())
             Snackbar.make(view, "Preferências salvas", Snackbar.LENGTH_SHORT).show()
         }
+
+        buttonLogout.setOnClickListener {
+            performLogout()
+        }
+    }
+
+    private fun performLogout() {
+        auth.signOut()
+        
+        // Limpa a pilha de atividades e vai para LoginActivity
+        val intent = Intent(requireContext(), LoginActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        requireActivity().finish()
     }
 
     private fun loadUserInfo(view: View) {

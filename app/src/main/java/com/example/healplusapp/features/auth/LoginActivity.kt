@@ -22,51 +22,116 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
     private lateinit var signInClient: SignInClient
+    
+    companion object {
+        private const val RC_SIGN_IN = 9001
+    }
 
     private val googleLauncher = registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { result ->
-        if (result.resultCode != RESULT_OK || result.data == null) {
-            Log.d("LoginActivity", "Login cancelado pelo usuário")
-            return@registerForActivityResult
-        }
-        
         try {
+            if (result.resultCode != RESULT_OK) {
+                Log.d("LoginActivity", "Login cancelado ou falhou. Result code: ${result.resultCode}")
+                if (result.data != null) {
+                    // Tenta obter o erro do resultado
+                    val exception = signInClient.getSignInCredentialFromIntent(result.data)
+                    Log.d("LoginActivity", "Credential obtida mesmo com resultado não OK")
+                }
+                return@registerForActivityResult
+            }
+            
+            if (result.data == null) {
+                Log.e("LoginActivity", "Result data é null")
+                Toast.makeText(this, "Erro: dados de resultado não disponíveis", Toast.LENGTH_SHORT).show()
+                return@registerForActivityResult
+            }
+            
             val credential = signInClient.getSignInCredentialFromIntent(result.data)
             val idToken = credential.googleIdToken
-            when {
-                idToken != null -> {
-                    val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
-                    auth.signInWithCredential(firebaseCredential)
-                        .addOnCompleteListener(this) { task ->
-                            if (task.isSuccessful) {
-                                val user = auth.currentUser
-                                Log.d("LoginActivity", "Login bem-sucedido: ${user?.email}")
-                                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
-                                finish()
-                            } else {
-                                Log.e("LoginActivity", "Falha no login", task.exception)
-                                Toast.makeText(this@LoginActivity, "Falha no login: ${task.exception?.message}", Toast.LENGTH_LONG).show()
-                            }
-                        }
-                }
-                else -> {
-                    Log.e("LoginActivity", "ID Token não encontrado")
-                    Toast.makeText(this, "Erro ao obter credencial do Google", Toast.LENGTH_LONG).show()
-                }
+            
+            if (idToken == null) {
+                Log.e("LoginActivity", "ID Token não encontrado na credencial")
+                Toast.makeText(this, "Erro ao obter credencial do Google", Toast.LENGTH_LONG).show()
+                return@registerForActivityResult
             }
+            
+            Log.d("LoginActivity", "ID Token obtido com sucesso")
+            val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
+            auth.signInWithCredential(firebaseCredential)
+                .addOnCompleteListener(this) { task ->
+                    if (task.isSuccessful) {
+                        val user = auth.currentUser
+                        Log.d("LoginActivity", "Login bem-sucedido: ${user?.email}")
+                        startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                        finish()
+                    } else {
+                        Log.e("LoginActivity", "Falha no login Firebase", task.exception)
+                        Toast.makeText(this@LoginActivity, "Falha no login: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
         } catch (e: ApiException) {
-            Log.e("LoginActivity", "Erro na autenticação", e)
+            Log.e("LoginActivity", "ApiException na autenticação", e)
             when (e.statusCode) {
                 12501 -> {
                     // Usuário cancelou o login
-                    Log.d("LoginActivity", "Login cancelado")
+                    Log.d("LoginActivity", "Login cancelado pelo usuário (código 12501)")
+                }
+                10 -> {
+                    Log.e("LoginActivity", "Erro de desenvolvimento (código 10)")
+                    Toast.makeText(this, "Erro de configuração. Verifique o Client ID do Google.", Toast.LENGTH_LONG).show()
                 }
                 else -> {
+                    Log.e("LoginActivity", "Erro na autenticação: código ${e.statusCode}", e)
                     Toast.makeText(this, "Erro na autenticação: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
         } catch (e: Exception) {
             Log.e("LoginActivity", "Erro inesperado", e)
-            Toast.makeText(this, "Erro ao processar login: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "Erro ao processar login: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        
+        if (requestCode == RC_SIGN_IN) {
+            try {
+                if (resultCode == RESULT_OK && data != null) {
+                    val credential = signInClient.getSignInCredentialFromIntent(data)
+                    val idToken = credential.googleIdToken
+                    
+                    if (idToken != null) {
+                        val firebaseCredential = GoogleAuthProvider.getCredential(idToken, null)
+                        auth.signInWithCredential(firebaseCredential)
+                            .addOnCompleteListener(this) { task ->
+                                if (task.isSuccessful) {
+                                    val user = auth.currentUser
+                                    Log.d("LoginActivity", "Login bem-sucedido (fallback): ${user?.email}")
+                                    startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                                    finish()
+                                } else {
+                                    Log.e("LoginActivity", "Falha no login Firebase (fallback)", task.exception)
+                                    Toast.makeText(this@LoginActivity, "Falha no login: ${task.exception?.message}", Toast.LENGTH_LONG).show()
+                                }
+                            }
+                    }
+                } else {
+                    Log.d("LoginActivity", "Login cancelado (fallback method)")
+                }
+            } catch (e: ApiException) {
+                Log.e("LoginActivity", "Erro na autenticação (fallback)", e)
+                when (e.statusCode) {
+                    12501 -> {
+                        Log.d("LoginActivity", "Login cancelado pelo usuário (fallback)")
+                    }
+                    else -> {
+                        Toast.makeText(this, "Erro na autenticação: ${e.message}", Toast.LENGTH_LONG).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("LoginActivity", "Erro inesperado (fallback)", e)
+                Toast.makeText(this, "Erro ao processar login: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         }
     }
 
@@ -124,22 +189,47 @@ class LoginActivity : AppCompatActivity() {
             return
         }
         
+        Log.d("LoginActivity", "Iniciando login Google com Client ID: $clientId")
+        
         val request = GetSignInIntentRequest.builder()
             .setServerClientId(clientId)
             .build()
             
         signInClient.getSignInIntent(request)
             .addOnSuccessListener { pendingIntent ->
+                Log.d("LoginActivity", "PendingIntent obtido com sucesso")
                 try {
-                    val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent.intentSender).build()
+                    // Tenta lançar o Intent usando ActivityResultLauncher
+                    val intentSenderRequest = IntentSenderRequest.Builder(pendingIntent.intentSender)
+                        .build()
+                    Log.d("LoginActivity", "Lançando IntentSenderRequest")
                     googleLauncher.launch(intentSenderRequest)
+                } catch (e: android.content.IntentSender.SendIntentException) {
+                    Log.e("LoginActivity", "Erro ao enviar Intent (SendIntentException)", e)
+                    e.printStackTrace()
+                    // Tenta uma abordagem alternativa
+                    try {
+                        startIntentSenderForResult(
+                            pendingIntent.intentSender,
+                            RC_SIGN_IN,
+                            null,
+                            0,
+                            0,
+                            0
+                        )
+                    } catch (ex: Exception) {
+                        Log.e("LoginActivity", "Erro ao usar método alternativo", ex)
+                        Toast.makeText(this, "Erro ao iniciar login: ${ex.localizedMessage}", Toast.LENGTH_LONG).show()
+                    }
                 } catch (e: Exception) {
                     Log.e("LoginActivity", "Erro ao lançar intent", e)
-                    Toast.makeText(this, "Erro ao iniciar login: ${e.message}", Toast.LENGTH_LONG).show()
+                    e.printStackTrace()
+                    Toast.makeText(this, "Erro ao iniciar login: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
                 }
             }
             .addOnFailureListener { e ->
                 Log.e("LoginActivity", "Falha ao obter intent de login", e)
+                e.printStackTrace()
                 Toast.makeText(this, "Falha ao obter intenção de login: ${e.localizedMessage}", Toast.LENGTH_LONG).show()
             }
     }
