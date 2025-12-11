@@ -69,6 +69,28 @@ class PacienteRepository @Inject constructor(
     suspend fun countAtivos(): Int {
         return pacienteDao.countAtivos()
     }
+
+    suspend fun getAllIds(): List<Long> {
+        return pacienteDao.getAllIds()
+    }
+
+    suspend fun insertFromFirestore(paciente: Paciente, firestoreId: Long) {
+        val now = System.currentTimeMillis()
+        val entity = PacienteEntity(
+            id = firestoreId,
+            nomeCompleto = paciente.nomeCompleto,
+            dataNascimento = paciente.dataNascimento,
+            telefone = paciente.telefone,
+            email = paciente.email,
+            profissao = paciente.profissao,
+            estadoCivil = paciente.estadoCivil,
+            observacoes = paciente.observacoes,
+            arquivado = false,
+            dataCriacao = now,
+            dataAtualizacao = now
+        )
+        pacienteDao.insert(entity)
+    }
     
     private fun PacienteEntity.toModel(): Paciente {
         return Paciente(

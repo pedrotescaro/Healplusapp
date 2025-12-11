@@ -114,12 +114,44 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupFirestoreBackends() {
+        // Primeiro, faz download dos dados do Firestore para o banco local
+        lifecycleScope.launch {
+            syncPacientesFromFirestore()
+        }
         // Inicia observadores de forma assíncrona (não bloqueia onCreate)
         observeAnamneses()
         observeAgendamentos()
         observePacientes()
         // Sincroniza configurações do perfil de forma assíncrona
         sharedPrefs?.let { syncProfileSettingsSnapshot(it) }
+    }
+
+    private suspend fun syncPacientesFromFirestore() {
+        try {
+            val localIds = pacienteRepository.getAllIds().toSet()
+            val snapshot = firestore.collection("pacientes").get().await()
+            
+            for (doc in snapshot.documents) {
+                val firestoreId = doc.id.toLongOrNull() ?: continue
+                if (localIds.contains(firestoreId)) continue
+                
+                val nomeCompleto = doc.getString("nomeCompleto") ?: continue
+                val paciente = com.example.healplusapp.features.fichas.model.Paciente(
+                    id = firestoreId,
+                    nomeCompleto = nomeCompleto,
+                    dataNascimento = doc.getString("dataNascimento"),
+                    telefone = doc.getString("telefone"),
+                    email = doc.getString("email"),
+                    profissao = doc.getString("profissao"),
+                    estadoCivil = doc.getString("estadoCivil"),
+                    observacoes = doc.getString("observacoes")
+                )
+                pacienteRepository.insertFromFirestore(paciente, firestoreId)
+                Log.d(TAG, "Paciente $firestoreId sincronizado do Firestore")
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Erro ao sincronizar pacientes do Firestore", e)
+        }
     }
 
     private fun observeAnamneses() {

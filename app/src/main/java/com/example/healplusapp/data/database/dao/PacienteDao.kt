@@ -36,5 +36,11 @@ interface PacienteDao {
 
     @Query("DELETE FROM pacientes WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(pacientes: List<PacienteEntity>)
+
+    @Query("SELECT id FROM pacientes")
+    suspend fun getAllIds(): List<Long>
 }
 
