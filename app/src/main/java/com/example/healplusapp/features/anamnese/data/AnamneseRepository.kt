@@ -68,8 +68,15 @@ class AnamneseRepository @Inject constructor(
     }
     
     suspend fun update(anamnese: Anamnese) {
+        val anamneseAntiga = anamnese.id?.let { anamneseDao.getById(it) }
+        val nomeAntigo = anamneseAntiga?.nomeCompleto
+        
         val entity = anamnese.toEntity()
         anamneseDao.update(entity.copy(dataAtualizacao = System.currentTimeMillis()))
+        
+        if (nomeAntigo != null && nomeAntigo != anamnese.nomeCompleto) {
+            pacienteDao.updateNome(nomeAntigo, anamnese.nomeCompleto)
+        }
     }
     
     suspend fun salvar(anamnese: Anamnese): Long {
@@ -91,6 +98,10 @@ class AnamneseRepository @Inject constructor(
     
     suspend fun countAtivas(): Int {
         return anamneseDao.countAtivas()
+    }
+
+    suspend fun getByNomePaciente(nome: String): Anamnese? {
+        return anamneseDao.getByNomePaciente(nome)?.toModel()
     }
     
     private fun AnamneseEntity.toModel(): Anamnese {

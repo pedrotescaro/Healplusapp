@@ -33,5 +33,8 @@ interface AnamneseDao {
     
     @Query("SELECT COUNT(*) FROM anamneses WHERE arquivado = 0")
     suspend fun countAtivas(): Int
+
+    @Query("SELECT * FROM anamneses WHERE nomeCompleto = :nome AND arquivado = 0 ORDER BY dataCriacao DESC LIMIT 1")
+    suspend fun getByNomePaciente(nome: String): AnamneseEntity?
 }
 

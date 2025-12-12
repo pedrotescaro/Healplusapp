@@ -45,5 +45,8 @@ interface PacienteDao {
 
     @Query("SELECT * FROM pacientes WHERE nomeCompleto = :nome LIMIT 1")
     suspend fun getByNome(nome: String): PacienteEntity?
+
+    @Query("UPDATE pacientes SET nomeCompleto = :novoNome, dataAtualizacao = :timestamp WHERE nomeCompleto = :nomeAntigo")
+    suspend fun updateNome(nomeAntigo: String, novoNome: String, timestamp: Long = System.currentTimeMillis())
 }
 

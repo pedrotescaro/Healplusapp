@@ -14,6 +14,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.healplusapp.R
+import com.example.healplusapp.features.anamnese.data.AnamneseRepository
+import com.example.healplusapp.features.anamnese.ui.AnamneseFormActivity
 import com.example.healplusapp.features.fichas.model.Paciente
 import com.example.healplusapp.features.fichas.viewmodel.PacienteViewModel
 import com.example.healplusapp.features.fichas.viewmodel.PacienteUiState
@@ -23,9 +25,13 @@ import com.example.healplusapp.utils.SnackbarHelper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class FichasActivity : AppCompatActivity() {
+    
+    @Inject
+    lateinit var anamneseRepository: AnamneseRepository
     
     private val viewModel: PacienteViewModel by viewModels()
     private lateinit var recyclerView: RecyclerView
@@ -52,9 +58,19 @@ class FichasActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = FichasAdapter(emptyList(),
             onItemClick = { paciente ->
-                val intent = Intent(this, PacienteFormActivity::class.java)
-                intent.putExtra("id", paciente.id ?: -1L)
-                startActivity(intent)
+                lifecycleScope.launch {
+                    val anamnese = anamneseRepository.getByNomePaciente(paciente.nomeCompleto)
+                    if (anamnese != null) {
+                        val intent = Intent(this@FichasActivity, AnamneseFormActivity::class.java)
+                        intent.putExtra("id", anamnese.id ?: -1L)
+                        startActivity(intent)
+                    } else {
+                        SnackbarHelper.showError(
+                            findViewById(android.R.id.content),
+                            "Nenhuma anamnese encontrada para este paciente"
+                        )
+                    }
+                }
             },
             onItemLongClick = { paciente ->
                 androidx.appcompat.app.AlertDialog.Builder(this)
