@@ -121,10 +121,6 @@ class AnamneseFormActivity : AppCompatActivity() {
                     }
                     is AnamneseUiState.Success -> {
                         Toast.makeText(this@AnamneseFormActivity, "Salvo com sucesso", Toast.LENGTH_SHORT).show()
-                        val jsonCompleto = montarJsonCompleto()
-                        val intent = android.content.Intent(this@AnamneseFormActivity, AnamnesePreviewActivity::class.java)
-                        intent.putExtra("anamnese_json", jsonCompleto)
-                        startActivity(intent)
                         finish()
                     }
                     is AnamneseUiState.AnamneseLoaded -> {
