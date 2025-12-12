@@ -1,7 +1,9 @@
 package com.example.healplusapp.features.anamnese.data
 
 import com.example.healplusapp.data.database.dao.AnamneseDao
+import com.example.healplusapp.data.database.dao.PacienteDao
 import com.example.healplusapp.data.database.entity.AnamneseEntity
+import com.example.healplusapp.data.database.entity.PacienteEntity
 import com.example.healplusapp.features.anamnese.model.Anamnese
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -10,7 +12,8 @@ import javax.inject.Singleton
 
 @Singleton
 class AnamneseRepository @Inject constructor(
-    private val anamneseDao: AnamneseDao
+    private val anamneseDao: AnamneseDao,
+    private val pacienteDao: PacienteDao
 ) {
     
     fun getAllAtivas(): Flow<List<Anamnese>> {
@@ -37,7 +40,31 @@ class AnamneseRepository @Inject constructor(
     
     suspend fun insert(anamnese: Anamnese): Long {
         val entity = anamnese.toEntity()
-        return anamneseDao.insert(entity)
+        val anamneseId = anamneseDao.insert(entity)
+        
+        criarPacienteSeNaoExistir(anamnese.nomeCompleto)
+        
+        return anamneseId
+    }
+    
+    private suspend fun criarPacienteSeNaoExistir(nomeCompleto: String) {
+        val pacienteExistente = pacienteDao.getByNome(nomeCompleto)
+        if (pacienteExistente == null) {
+            val now = System.currentTimeMillis()
+            val novoPaciente = PacienteEntity(
+                nomeCompleto = nomeCompleto,
+                dataNascimento = null,
+                telefone = null,
+                email = null,
+                profissao = null,
+                estadoCivil = null,
+                observacoes = null,
+                arquivado = false,
+                dataCriacao = now,
+                dataAtualizacao = now
+            )
+            pacienteDao.insert(novoPaciente)
+        }
     }
     
     suspend fun update(anamnese: Anamnese) {

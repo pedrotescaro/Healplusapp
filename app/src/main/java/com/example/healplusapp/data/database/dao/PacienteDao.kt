@@ -42,5 +42,8 @@ interface PacienteDao {
 
     @Query("SELECT id FROM pacientes")
     suspend fun getAllIds(): List<Long>
+
+    @Query("SELECT * FROM pacientes WHERE nomeCompleto = :nome LIMIT 1")
+    suspend fun getByNome(nome: String): PacienteEntity?
 }
 
