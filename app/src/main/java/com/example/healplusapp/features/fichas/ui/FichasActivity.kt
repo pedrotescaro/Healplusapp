@@ -58,41 +58,41 @@ class FichasActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         adapter = FichasAdapter(emptyList(),
             onItemClick = { paciente ->
-                lifecycleScope.launch {
-                    val anamnese = anamneseRepository.getByNomePaciente(paciente.nomeCompleto)
-                    if (anamnese != null) {
-                        val intent = Intent(this@FichasActivity, AnamneseFormActivity::class.java)
-                        intent.putExtra("id", anamnese.id ?: -1L)
-                        startActivity(intent)
-                    } else {
-                        SnackbarHelper.showError(
+                abrirAnamnese(paciente)
+            },
+            onEditClick = { paciente ->
+                abrirAnamnese(paciente)
+            },
+            onDeleteClick = { paciente ->
+                DialogHelper.showDeleteConfirmDialog(this, paciente.nomeCompleto) {
+                    lifecycleScope.launch {
+                        anamneseRepository.deleteByNomePaciente(paciente.nomeCompleto)
+                        paciente.id?.let { viewModel.deletarPaciente(it) }
+                        SnackbarHelper.showSuccess(
                             findViewById(android.R.id.content),
-                            "Nenhuma anamnese encontrada para este paciente"
+                            "Paciente e anamnese excluídos"
                         )
                     }
                 }
-            },
-            onItemLongClick = { paciente ->
-                androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle(paciente.nomeCompleto)
-                    .setItems(arrayOf("Arquivar", "Deletar")) { _, which ->
-                        when (which) {
-                            0 -> paciente.id?.let {
-                                DialogHelper.showArchiveConfirmDialog(this, paciente.nomeCompleto) {
-                                    viewModel.arquivarPaciente(it)
-                                }
-                            }
-                            1 -> paciente.id?.let {
-                                DialogHelper.showDeleteConfirmDialog(this, paciente.nomeCompleto) {
-                                    viewModel.deletarPaciente(it)
-                                }
-                            }
-                        }
-                    }
-                    .show()
             }
         )
         recyclerView.adapter = adapter
+    }
+    
+    private fun abrirAnamnese(paciente: Paciente) {
+        lifecycleScope.launch {
+            val anamnese = anamneseRepository.getByNomePaciente(paciente.nomeCompleto)
+            if (anamnese != null) {
+                val intent = Intent(this@FichasActivity, AnamneseFormActivity::class.java)
+                intent.putExtra("id", anamnese.id ?: -1L)
+                startActivity(intent)
+            } else {
+                SnackbarHelper.showError(
+                    findViewById(android.R.id.content),
+                    "Nenhuma anamnese encontrada para este paciente"
+                )
+            }
+        }
     }
     
     private fun setupFab() {
@@ -194,12 +194,15 @@ class FichasActivity : AppCompatActivity() {
 class FichasAdapter(
     private var pacientes: List<Paciente>,
     private val onItemClick: (Paciente) -> Unit,
-    private val onItemLongClick: (Paciente) -> Unit
+    private val onEditClick: (Paciente) -> Unit,
+    private val onDeleteClick: (Paciente) -> Unit
 ) : RecyclerView.Adapter<FichasAdapter.ViewHolder>() {
     
     class ViewHolder(val view: android.view.View) : RecyclerView.ViewHolder(view) {
         val nome: android.widget.TextView = view.findViewById(R.id.text_nome)
         val info: android.widget.TextView = view.findViewById(R.id.text_info)
+        val btnEditar: android.widget.ImageButton = view.findViewById(R.id.btn_editar)
+        val btnExcluir: android.widget.ImageButton = view.findViewById(R.id.btn_excluir)
     }
     
     override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): ViewHolder {
@@ -219,7 +222,8 @@ class FichasAdapter(
             }
         }
         holder.view.setOnClickListener { onItemClick(paciente) }
-        holder.view.setOnLongClickListener { onItemLongClick(paciente); true }
+        holder.btnEditar.setOnClickListener { onEditClick(paciente) }
+        holder.btnExcluir.setOnClickListener { onDeleteClick(paciente) }
     }
     
     override fun getItemCount() = pacientes.size

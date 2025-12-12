@@ -103,6 +103,10 @@ class AnamneseRepository @Inject constructor(
     suspend fun getByNomePaciente(nome: String): Anamnese? {
         return anamneseDao.getByNomePaciente(nome)?.toModel()
     }
+
+    suspend fun deleteByNomePaciente(nome: String) {
+        anamneseDao.deleteByNomePaciente(nome)
+    }
     
     private fun AnamneseEntity.toModel(): Anamnese {
         return Anamnese(

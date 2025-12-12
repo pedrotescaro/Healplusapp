@@ -36,5 +36,8 @@ interface AnamneseDao {
 
     @Query("SELECT * FROM anamneses WHERE nomeCompleto = :nome AND arquivado = 0 ORDER BY dataCriacao DESC LIMIT 1")
     suspend fun getByNomePaciente(nome: String): AnamneseEntity?
+
+    @Query("DELETE FROM anamneses WHERE nomeCompleto = :nome")
+    suspend fun deleteByNomePaciente(nome: String)
 }
 
