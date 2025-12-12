@@ -21,7 +21,7 @@ import com.example.healplusapp.R
 import com.example.healplusapp.features.agenda.model.Agendamento
 import com.example.healplusapp.features.anamnese.ui.AnamneseFormActivity
 import com.example.healplusapp.features.anamnese.ui.AnamneseListActivity
-import com.example.healplusapp.features.fichas.ui.PacienteFormActivity
+import com.example.healplusapp.features.fichas.ui.FichasActivity
 import android.widget.ImageView
 import com.google.android.material.snackbar.Snackbar
 import com.google.firebase.auth.FirebaseAuth
@@ -103,8 +103,8 @@ class DashboardFragment : Fragment() {
             startActivity(Intent(requireContext(), AnamneseFormActivity::class.java))
         }
         
-        requireView().findViewById<View>(R.id.btn_novo_paciente)?.setOnClickListener {
-            startActivity(Intent(requireContext(), PacienteFormActivity::class.java))
+        requireView().findViewById<View>(R.id.btn_minhas_fichas)?.setOnClickListener {
+            startActivity(Intent(requireContext(), FichasActivity::class.java))
         }
         
         requireView().findViewById<View>(R.id.btn_nova_consulta)?.setOnClickListener {
